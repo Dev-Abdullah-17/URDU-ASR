@@ -1,0 +1,19 @@
+# Known-good as of early 2026. Adjust versions to your platform if needed.
+# NOTE: the transformers==4.44.2 pin you used for DeBERTa was a NaN-specific fix
+# for that model; Whisper fine-tuning works with the range below.
+
+torch>=2.1
+transformers>=4.44,<4.48
+datasets>=2.19
+peft>=0.11
+accelerate>=0.30
+jiwer>=3.0
+evaluate>=0.4
+librosa>=0.10
+soundfile>=0.12
+gradio>=4.0
+yt-dlp>=2024.8.6
+pandas>=2.0
+numpy>=1.24
+tqdm>=4.66
+pytest>=8.0
