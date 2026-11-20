@@ -12,10 +12,12 @@ Examples:
         --text-column transcription --max-samples 200 \
         --out results/baseline_whisper_small_fleurs.json
 
-    # Common Voice Urdu (text column is `sentence`, needs `huggingface-cli login`):
+    # Common Voice Urdu (text column is `sentence`). NOTE: Common Voice left the
+    # HF Hub in Oct 2025; download it from the Mozilla Data Collective and point
+    # --dataset at a local copy (e.g. an `audiofolder` / loader script path):
     python src/evaluate_baseline.py \
         --model openai/whisper-small \
-        --dataset mozilla-foundation/common_voice_17_0 --config ur --split test \
+        --dataset data/common_voice_ur --split test \
         --text-column sentence --max-samples 200 \
         --out results/baseline_whisper_small_cv.json
 """

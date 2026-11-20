@@ -22,7 +22,7 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
 ## Non-negotiable conventions
 1. **Always normalize before scoring.** Any WER/CER must run through
    `scoring_normalizer`. Never compare raw strings.
-2. **Always smoke-test before a long run.** `python src/train_whisper_lora.py --smoke-test`
+2. **Always smoke-test before a long run.** `python src/train_whisper_lora.py --smoke-test --dataset ...`
    must show loss decreasing on 20 samples. If it can't overfit 20 samples, the
    pipeline is broken — fix it before launching a real run.
 3. **Single GPU, fixed seed.** Set `--seed` and keep runs single-GPU on free tiers.
@@ -52,8 +52,10 @@ python src/evaluate_baseline.py --model openai/whisper-small \
   --out results/baseline_whisper_small.json
 
 # Phase 2 sanity check, then real run
-python src/train_whisper_lora.py --smoke-test
+python src/train_whisper_lora.py --smoke-test \
+  --dataset google/fleurs --config ur_pk --text-column transcription
 python src/train_whisper_lora.py --base-model openai/whisper-small \
+  --dataset google/fleurs --config ur_pk --text-column transcription \
   --output-dir checkpoints/whisper-small-ur-lora --epochs 3
 
 # Phase 3 evaluate fine-tuned

@@ -162,8 +162,9 @@ speech and Whisper-large best on conversational speech. You will:
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Common Voice needs auth (accept dataset terms on HF first):
-huggingface-cli login
+# Common Voice is no longer on the Hugging Face Hub (see §7 note); download it
+# from the Mozilla Data Collective and load it from a local path.
+# Other gated HF datasets still need: huggingface-cli login
 
 # System deps for data collection:
 #   apt-get install -y ffmpeg    (or use conda / Kaggle image which has ffmpeg)
@@ -187,13 +188,18 @@ huggingface-cli login
 
 | Name | Type | Role | License | Access | Size |
 |---|---|---|---|---|---|
-| Mozilla Common Voice (ur) | Read | Fine-tune fuel + baseline | CC0 | HF (`mozilla-foundation/common_voice_17_0`, `ur`); login + accept terms | Growing; hours-scale |
+| Mozilla Common Voice (ur) | Read | Fine-tune fuel + baseline | CC0 | **Mozilla Data Collective** (left HF Hub Oct 2025; `mozilla-foundation/common_voice_*` no longer usable) | Growing; hours-scale |
 | Google FLEURS (ur_pk) | Read | Standard benchmark | CC-BY | HF (`google/fleurs`, `ur_pk`) | ~10h test/dev/train |
 | ARL Urdu Speech DB | Read | Extra read baseline | Research | Request from source | ~160k files |
 | CSaLT Urdu | Read | Extra read baseline | Research | Request | — |
 | WER We Stand release | Conversational + models + scripts | **Reproduce baselines; extend the conversational set** | Per repo | arXiv:2409.11252 links | ~1.3h conv. |
 | `humairawan/Urdu-aud01` | Synthetic | Optional extra training (disclose synthetic) | Per card | HF | ~59k samples |
 | **Your collected slice** | **Conversational, code-switched** | **The novel contribution** | You set it | YouTube/podcasts via `collect_audio.py` | Target ≥3h |
+
+> **Common Voice moved (Oct 2025).** Mozilla removed Common Voice from the
+> Hugging Face Hub; it is now distributed through the Mozilla Data Collective.
+> `train_whisper_lora.py` therefore has **no default dataset** — `--dataset` is
+> required. Download CV-ur from the Data Collective and pass a local path.
 
 **Text-column names differ:** FLEURS uses `transcription`; Common Voice uses
 `sentence`. The scripts expose `--text-column` for this.
