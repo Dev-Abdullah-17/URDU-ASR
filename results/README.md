@@ -13,12 +13,16 @@ set `urdu-asr/csalt-voice`.
 | `reeval_per_utt.csv` | **no** | per-utterance errors with normalized reference/hypothesis text |
 | `reeval_codeswitch_flags.csv` | **no** | per-utterance detector method, with reference text |
 | `reeval_meta.json` | no | provenance (also listed below) |
+| `reeval_pairwise.{csv,md}` | yes | paired bootstrap of adjacent-model differences (finding 1) |
+| `reeval_length_buckets.{csv,md}` | yes | WER/CER by reference-length bucket (finding 2) |
+| `reeval_cs_by_length.{csv,md}` | yes | code-switch flag vs length (finding 3) |
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/sameearif/WER-We-Stand external/WER-We-Stand
 python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results
+python src/reeval_analysis.py --results-dir results   # follow-up analyses (~3 s)
 ```
 
 The run takes about 25 s on CPU. Provenance of the committed tables:
@@ -158,3 +162,153 @@ The detector has not been validated yet. `data/codeswitch_labels_template.csv`
   madda letters آ (548), ئ (523) and ؤ (22)
 
 The references contain no Latin letters, no punctuation and no diacritics.
+
+## Follow-up analyses (`src/reeval_analysis.py`)
+
+These analyses use the `as_released~` and `N7_numwords` conditions. The bootstrap
+index matrix is the same as above (1000 × 471, seed 42).
+
+**Limitations common to all three:**
+- Resampling treats utterances as independent. Utterances come from a few
+  recorded sessions with 10 speakers (paper §3.2.2), and utterances from the
+  same session are likely correlated. A session- or speaker-level bootstrap
+  would probably give wider intervals. The dataset does not include session or
+  speaker ids, so this was not run.
+- No correction for multiple comparisons is applied: 16 adjacent pairs × 3
+  rankings × 2 conditions, and 17 models in finding 3.
+
+### 1. Adjacent-model differences (`reeval_pairwise.md`)
+
+For each ranking (utterance-averaged WER, corpus WER, corpus CER), the script
+takes every pair of adjacent models, A above B. On each of the 1000 resampled
+utterance sets, it computes B's metric minus A's. The table reports the 95%
+percentile interval of that difference and whether it includes 0.
+
+**whisper-large-v3 minus whisper-large-v3-ur** (as_released~):
+
+| metric | difference | 95% CI | includes 0 |
+|---|---|---|---|
+| utterance-averaged WER | +0.43 | [−1.43, 1.92] | yes |
+| corpus WER | −0.04 | [−1.46, 1.24] | yes |
+| corpus CER | +0.29 | [−0.94, 1.53] | yes |
+
+Under N7_numwords the same differences are +0.50 [−1.41, 1.99], +0.05
+[−1.38, 1.31] and +0.34 [−0.90, 1.57].
+
+**Across all adjacent pairs:**
+
+- The interval excludes 0 for 6 of 16 pairs in the utterance-averaged WER
+  ranking, and for 7 of 16 in each of the corpus WER and corpus CER rankings.
+  The counts are the same for both conditions.
+- Chaining the pairs whose interval includes 0 gives these runs in the
+  as-released ranking:
+
+  | run | models |
+  |---|---|
+  | 1 | whisper-large-v3-ur, whisper-large-v3, seamless-m4t-v2-large-ur, seamless-m4t-medium-ur |
+  | 2 | hf-seamless-m4t-medium |
+  | 3 | whisper-medium-ur, seamless-m4t-v2-large, whisper-small-ur |
+  | 4 | whisper-medium, mms-1b-ur |
+  | 5 | mms-1b-all, whisper-base-ur, whisper-small, whisper-tiny-ur |
+  | 6 | mms-300m-ur |
+  | 7 | whisper-tiny, whisper-base |
+
+  The per-ranking chains are in `reeval_pairwise.md`.
+
+*Limitations:*
+- The test covers adjacent pairs only. A chain like A≈B, B≈C does not mean A≈C.
+- `p_boot_delta_le_0` is the share of resamples, not a p-value from a formal test.
+
+### 2. Reference length and the two WER aggregations (`reeval_length_buckets.md`)
+
+**How the two aggregations weight lengths.** Utterance-averaged WER gives each
+bucket weight in proportion to its share of *utterances*. Corpus WER weights by
+its share of *reference words*. The references are mostly long (median 27
+words, max 140), so these weights differ:
+
+| bucket | utterances | share of utterances | share of words |
+|---|---|---|---|
+| ≤5 words | 12 | 2.5% | 0.3% |
+| 6–15 words | 103 | 21.9% | 7.1% |
+| >15 words | 356 | 75.6% | 92.7% |
+
+On a finer split, the ≤15 group is 24.4% of utterances but 7.3% of words.
+
+**Short utterances have higher WER.** For 13 of 17 models, utterance-averaged
+WER is highest in the ≤15 group (fine scheme). The exceptions are mms-300m-ur,
+seamless-m4t-v2-large, whisper-base-ur and whisper-medium, whose highest bucket
+is 31–50 or >50. Two examples
+(as_released~, ≤15 vs 16–30):
+
+- hf-seamless-m4t-medium: 39.8 vs 16.6
+- whisper-small: 91.5 vs 44.2
+
+Models with high WER on short utterances move down the utterance-averaged ranking.
+
+**The top-two swap follows from this.** As-released utterance-averaged WER of
+whisper-large-v3 vs whisper-large-v3-ur:
+
+| bucket | whisper-large-v3 | whisper-large-v3-ur |
+|---|---|---|
+| ≤15 words | 26.7 | 21.7 |
+| >15 words | 15.3 | 16.4 |
+
+The corpus-level weighting is dominated by >15-word utterances.
+
+**Whisper base and tiny.** The non-fine-tuned whisper-base and whisper-tiny
+have 70 and 88 utterances, respectively, with more word errors than reference
+words (per-utterance WER > 100%). In the 6–15 bucket, whisper-base's
+utterance-averaged WER is 281.8. This accounts for whisper-base's +31.13-point
+gap between utterance-averaged and corpus WER.
+
+*Limitations:*
+- The requested buckets put 92.7% of words in >15 and only 12 utterances in ≤5,
+  so ≤5 estimates rest on 41 reference words. The `fine` scheme (≤15, 16–30,
+  31–50, >50) is added for resolution; it is not part of the original spec.
+- Length is the raw reference word count, so hypothesis length (insertions) is
+  not controlled.
+- The analysis is descriptive. No intervals are computed per bucket.
+
+### 3. Code-switch flag controlled for length (`reeval_cs_by_length.md`)
+
+The 64 utterances flagged by the loanword detector are longer than the 407
+unflagged ones (median 47.5 vs 26 words). By bucket, flagged utterances number:
+
+| bucket scheme | flagged per bucket |
+|---|---|
+| requested | ≤5: 0, 6–15: 3, >15: 61 |
+| fine | ≤15: 3, 16–30: 17, 31–50: 18, >50: 26 |
+
+**Method.** Within each bucket, flagged and unflagged utterances are compared
+directly. A length-standardised difference then weights each group's per-bucket
+corpus WER (or CER) by the bucket's pooled word share. Only buckets where both
+groups have at least 5 utterances are used: >15 for the requested scheme, and
+16–30, 31–50 and >50 for the fine scheme. All 1000 resamples were usable in
+every case.
+
+**Results under N7_numwords, fine scheme:**
+
+| metric | flagged lower | flagged higher | 95% CI excludes 0 |
+|---|---|---|---|
+| WER | 14 of 17 models | mms-300m-ur, whisper-small, whisper-tiny-ur | 3 models: seamless-m4t-v2-large, seamless-m4t-v2-large-ur, whisper-base-ur |
+| CER | 13 of 17 models | whisper-base, whisper-small, whisper-tiny-ur (mms-300m-ur: 0.00) | 4 models: mms-1b-ur, seamless-m4t-v2-large, seamless-m4t-v2-large-ur, whisper-large-v3-ur |
+
+With the requested buckets, flagged WER is lower for 14 of 17 models, and the
+CI excludes 0 for 3 (WER) and 6 (CER).
+
+For whisper-large-v3-ur, the standardised corpus WER is 14.53 (flagged) vs
+16.43 (unflagged), a difference of −1.90 [−4.97, 1.52].
+
+The lower WER on flagged utterances is not explained by the length
+distributions within these buckets.
+
+*Limitations:*
+- The detector is unvalidated. Its precision and recall are pending the manual
+  labels in `data/codeswitch_labels_template.csv`, and it only finds words on
+  its list, so misses go into the unflagged group.
+- Flagging may correlate with session, speaker or topic, which this analysis
+  does not control.
+- Only 3 flagged utterances are ≤15 words, so short utterances are effectively
+  excluded from the comparison.
+- With 64 flagged utterances the intervals are wide, and no correction is made
+  for 17 models × 2 metrics.
