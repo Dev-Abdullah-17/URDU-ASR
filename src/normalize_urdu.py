@@ -28,15 +28,16 @@ _CHAR_MAP = {
     "\u06C3": "\u06C1",  # Teh marbuta goal  -> heh goal
     "\u0623": "\u0627",  # Alef + hamza above-> alef
     "\u0625": "\u0627",  # Alef + hamza below-> alef
-    "\u0624": "\u0648",  # Waw + hamza       -> waw
 }
 
-# Alef madda and yeh-hamza are *distinct letters* in Urdu, not confusables:
-# merging them rewrites real words (آپ -> اپ, گئی -> گیی, آئے -> ایے) and can
+# Alef madda, yeh-hamza and waw-hamza are *distinct letters* in Urdu, not
+# confusables: merging them rewrites real words (آپ -> اپ, گئی -> گیی,
+# آئے -> ایے, جاؤ -> جاو) and can
 # hide genuine recognition errors. Only applied when merge_hamza_madda=True.
 _HAMZA_MADDA_MAP = {
     "\u0622": "\u0627",  # Alef + madda      -> alef   (آ -> ا)
     "\u0626": "\u06CC",  # Yeh + hamza       -> yeh    (ئ -> ی)
+    "\u0624": "\u0648",  # Waw + hamza       -> waw    (ؤ -> و)
 }
 
 # NFC does not compose Urdu yeh (U+06CC) + combining hamza above (U+0654) into
@@ -156,7 +157,7 @@ _LATIN_TOKEN_RE = re.compile(r"\S*[A-Za-z]\S*")
 @dataclass
 class UrduNormalizer:
     map_confusables: bool = True
-    merge_hamza_madda: bool = False  # آ->ا, ئ->ی (lossy; off by default)
+    merge_hamza_madda: bool = False  # آ->ا, ئ->ی, ؤ->و (lossy; off by default)
     strip_diacritics: bool = True
     normalize_digits: bool = True
     digits_to_words: bool = False    # 25 -> پچیس (WER We Stand refs spell numbers out)
@@ -183,7 +184,7 @@ class UrduNormalizer:
         text = text.replace(_DECOMPOSED_YEH_HAMZA, "\u0626")
         if self.map_confusables:                            # 5. Arabic -> Urdu
             text = text.translate(_CHAR_TABLE)
-        if self.merge_hamza_madda:                          # 5b. آ->ا, ئ->ی
+        if self.merge_hamza_madda:                          # 5b. آ->ا, ئ->ی, ؤ->و
             text = text.translate(_HAMZA_MADDA_TABLE)
         if self.strip_diacritics:                           # 6. strip harakat
             text = _DIAC_RE.sub("", text)

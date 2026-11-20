@@ -19,7 +19,7 @@ raw           No normalization on either side (whitespace tokenisation only).
 N1..N8        Our normalizer, steps added cumulatively, applied identically to
               reference AND hypothesis (see CONDITIONS below). N7 keeps Latin
               tokens, N8 drops them, so both are reported.
-N7+hamza      Ablation: N7 plus the legacy (lossy) آ->ا / ئ->ی merge.
+N7+hamza      Ablation: N7 plus the legacy (lossy) آ->ا / ئ->ی / ؤ->و merge.
 
 Metrics (for every condition x model)
 -------------------------------------
@@ -207,7 +207,7 @@ def build_conditions(chars: set[str], as_released_name: str) -> list[Condition]:
         conds.append(Condition(name, desc, f, f))
         if name == "N7_numwords":
             g = _norm(**kw, merge_hamza_madda=True)
-            conds.append(Condition("N7+hamza_merge", "N7 + legacy آ->ا, ئ->ی merge (ablation)", g, g))
+            conds.append(Condition("N7+hamza_merge", "N7 + legacy آ->ا, ئ->ی, ؤ->و merge (ablation)", g, g))
     return conds
 
 

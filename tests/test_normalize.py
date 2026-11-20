@@ -174,3 +174,14 @@ def test_native_homographs_not_flagged():
     # بس ("enough"), سر ("head"), کار ("work") are native Urdu words
     assert code_switch_method("بس کرو میرا سر درد کر رہا ہے") == "none"
     assert code_switch_method("یہ میرا کاروبار ہے") == "none"
+
+
+def test_waw_hamza_preserved_by_default():
+    assert n("جاؤ") == "جاؤ"        # jao ("go") must not become جاو
+    assert n("آؤ") == "آؤ"          # aao ("come")
+
+
+def test_merge_hamza_madda_includes_waw_hamza():
+    m = UrduNormalizer(merge_hamza_madda=True)
+    assert m("جاؤ") == "جاو"
+    assert m("آؤ") == "او"
