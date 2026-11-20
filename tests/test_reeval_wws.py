@@ -106,3 +106,10 @@ def test_main_end_to_end_on_synthetic_data(tmp_path, monkeypatch):
     t = [r for r in rows if r["subset"] == "overall" and r["condition"] == "as_released~"
          and r["metric"] == "utt_wer"]
     assert len(t) == rw.N_MODELS and all(float(r["kendall_tau_vs_as_released"]) == 1.0 for r in t)
+
+
+def test_label_template_sample_is_deterministic():
+    from make_cs_label_template import sample_ids
+    a = sample_ids()
+    assert a == sample_ids() and len(a) == 100 and len(set(a)) == 100
+    assert a == sorted(a) and 0 <= a[0] and a[-1] < 471
