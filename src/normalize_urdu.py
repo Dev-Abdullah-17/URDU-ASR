@@ -28,10 +28,21 @@ _CHAR_MAP = {
     "\u06C3": "\u06C1",  # Teh marbuta goal  -> heh goal
     "\u0623": "\u0627",  # Alef + hamza above-> alef
     "\u0625": "\u0627",  # Alef + hamza below-> alef
-    "\u0622": "\u0627",  # Alef + madda      -> alef
     "\u0624": "\u0648",  # Waw + hamza       -> waw
-    "\u0626": "\u06CC",  # Yeh + hamza       -> yeh
 }
+
+# Alef madda and yeh-hamza are *distinct letters* in Urdu, not confusables:
+# merging them rewrites real words (آپ -> اپ, گئی -> گیی, آئے -> ایے) and can
+# hide genuine recognition errors. Only applied when merge_hamza_madda=True.
+_HAMZA_MADDA_MAP = {
+    "\u0622": "\u0627",  # Alef + madda      -> alef   (آ -> ا)
+    "\u0626": "\u06CC",  # Yeh + hamza       -> yeh    (ئ -> ی)
+}
+
+# NFC does not compose Urdu yeh (U+06CC) + combining hamza above (U+0654) into
+# U+0626, so a decomposed گئی would otherwise lose its hamza in diacritic
+# stripping. Canonicalise it to the precomposed letter first.
+_DECOMPOSED_YEH_HAMZA = "\u06CC\u0654"
 
 # Urdu / Arabic-Indic digits -> ASCII.
 _DIGIT_MAP = {
@@ -53,6 +64,8 @@ _ZERO_WIDTH = "".join(["\u200B", "\u200C", "\u200D", "\u200E", "\u200F", "\uFEFF
 # Punctuation (Urdu + ASCII) removed for scoring.
 _PUNCT = r"""!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~۔،؟؛«»…“”‘’"""
 
+_CHAR_TABLE = str.maketrans(_CHAR_MAP)
+_HAMZA_MADDA_TABLE = str.maketrans(_HAMZA_MADDA_MAP)
 _DIAC_RE = re.compile(f"[{_DIACRITICS}]")
 _ZW_RE = re.compile(f"[{_ZERO_WIDTH}]")
 _PUNCT_RE = re.compile(f"[{re.escape(_PUNCT)}]")
@@ -62,6 +75,7 @@ _WS_RE = re.compile(r"\s+")
 @dataclass
 class UrduNormalizer:
     map_confusables: bool = True
+    merge_hamza_madda: bool = False  # آ->ا, ئ->ی (lossy; off by default)
     strip_diacritics: bool = True
     normalize_digits: bool = True
     remove_punct: bool = True     # True for scoring; often False for display
@@ -73,8 +87,11 @@ class UrduNormalizer:
             return ""
         text = unicodedata.normalize("NFC", text)          # 1. canonical compose
         text = _ZW_RE.sub("", text)                         # 2. drop zero-width
+        text = text.replace(_DECOMPOSED_YEH_HAMZA, "\u0626")
         if self.map_confusables:                            # 3. Arabic -> Urdu
-            text = text.translate(str.maketrans(_CHAR_MAP))
+            text = text.translate(_CHAR_TABLE)
+        if self.merge_hamza_madda:                          # 3b. آ->ا, ئ->ی
+            text = text.translate(_HAMZA_MADDA_TABLE)
         if self.strip_diacritics:                           # 4. strip harakat
             text = _DIAC_RE.sub("", text)
         if self.normalize_digits:                           # 5. digits -> ASCII
