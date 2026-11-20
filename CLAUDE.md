@@ -30,6 +30,13 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
 4. **Pin versions.** Use `requirements.txt`. If you hit fp16 NaNs, prefer bf16
    where supported; on T4/P100 (no bf16) keep fp16 loss-scaling default and reduce LR.
 5. **Never commit `data/`, `checkpoints/`, `results/`, or audio.** They're gitignored.
+   Exceptions (whitelisted in `.gitignore`), because they contain no reference text:
+   `results/README.md`, `results/reeval_table.csv`, `results/reeval_table.md`
+   (aggregate numbers only) and `data/codeswitch_labels_template.csv` (utterance
+   ids + labels only). Anything containing csalt-voice reference text —
+   `results/csalt_voice_refs.json`, `results/reeval_per_utt.csv`,
+   `results/reeval_codeswitch_flags.csv` — stays local: that dataset is not ours
+   to redistribute.
 6. **Report WER and CER.** CER matters for Urdu script. Always break results into
    overall / code-switched / monolingual.
 7. **Provenance for data.** Every collected clip needs a source URL + license note

@@ -7,10 +7,15 @@ __pycache__/
 venv/
 .ipynb_checkpoints/
 
-# Project artefacts (never commit; see CLAUDE.md)
-data/
+# Project artefacts (never commit; see CLAUDE.md rule 5)
+data/*
 checkpoints/
-results/
+results/*
+# ...except these, which contain no reference text (see CLAUDE.md rule 5):
+!results/README.md
+!results/reeval_table.csv
+!results/reeval_table.md
+!data/codeswitch_labels_template.csv
 wandb/
 *.wav
 *.mp3
