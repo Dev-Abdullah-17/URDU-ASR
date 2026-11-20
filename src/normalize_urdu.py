@@ -52,6 +52,82 @@ _DIGIT_MAP = {
     "\u06F5": "5", "\u06F6": "6", "\u06F7": "7", "\u06F8": "8", "\u06F9": "9",
 }
 
+# Urdu cardinal number words 0-100. Urdu numbers below 100 are irregular, so
+# they are listed in full (common spellings; one canonical form each).
+_URDU_NUMS = (
+    "صفر ایک دو تین چار پانچ چھ سات آٹھ نو "                       # 0-9
+    "دس گیارہ بارہ تیرہ چودہ پندرہ سولہ سترہ اٹھارہ انیس "        # 10-19
+    "بیس اکیس بائیس تئیس چوبیس پچیس چھبیس ستائیس اٹھائیس انتیس "  # 20-29
+    "تیس اکتیس بتیس تینتیس چونتیس پینتیس چھتیس سینتیس اڑتیس انتالیس "  # 30-39
+    "چالیس اکتالیس بیالیس تینتالیس چوالیس پینتالیس چھیالیس سینتالیس اڑتالیس انچاس "  # 40-49
+    "پچاس اکاون باون ترپن چوون پچپن چھپن ستاون اٹھاون انسٹھ "     # 50-59
+    "ساٹھ اکسٹھ باسٹھ ترسٹھ چونسٹھ پینسٹھ چھیاسٹھ سڑسٹھ اڑسٹھ انہتر "  # 60-69
+    "ستر اکہتر بہتر تہتر چوہتر پچہتر چھہتر ستتر اٹھہتر اناسی "     # 70-79
+    "اسی اکیاسی بیاسی تراسی چوراسی پچاسی چھیاسی ستاسی اٹھاسی نواسی "  # 80-89
+    "نوے اکیانوے بانوے ترانوے چورانوے پچانوے چھیانوے ستانوے اٹھانوے ننانوے "  # 90-99
+    "سو"                                                            # 100
+).split()
+assert len(_URDU_NUMS) == 101
+_HUNDRED, _THOUSAND, _LAKH, _CRORE = "سو", "ہزار", "لاکھ", "کروڑ"
+_DECIMAL_POINT = "اعشاریہ"
+_MAX_SPOKEN = 10**9 - 1   # up to 99 crore ...; longer strings read digit-by-digit
+
+
+def urdu_number_words(n: int) -> str:
+    """Spell a non-negative integer in Urdu words (South-Asian grouping).
+
+    0-100 come from the table (100 -> "سو"); 101-999 use "<n> سو <rest>"
+    (e.g. 101 -> "ایک سو ایک", 350 -> "تین سو پچاس"); then ہزار (10^3),
+    لاکھ (10^5) and کروڑ (10^7). Numbers > _MAX_SPOKEN are read digit by digit.
+    """
+    if n < 0:
+        raise ValueError("negative numbers not supported")
+    if n <= 100:
+        return _URDU_NUMS[n]
+    if n > _MAX_SPOKEN:
+        return " ".join(_URDU_NUMS[int(d)] for d in str(n))
+    parts = []
+    for size, word in ((10**7, _CRORE), (10**5, _LAKH), (10**3, _THOUSAND)):
+        if n >= size:
+            parts += [urdu_number_words(n // size), word]
+            n %= size
+    if n >= 100:
+        parts += [_URDU_NUMS[n // 100], _HUNDRED]
+        n %= 100
+    if n:
+        parts.append(_URDU_NUMS[n])
+    return " ".join(parts)
+
+
+# A number: digits with optional thousands separators and an optional decimal
+# part. Applied after digits have been mapped to ASCII.
+_NUMBER_RE = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
+# Ordinal suffixes that attach directly to a number (5واں -> پانچواں).
+_ORDINAL_SUFFIX_RE = re.compile(r"(?:واں|ویں|وی)")
+
+
+def _spell_number(token: str) -> str:
+    whole, _, frac = token.replace(",", "").partition(".")
+    words = urdu_number_words(int(whole))
+    if frac:
+        words += " " + _DECIMAL_POINT + " " + " ".join(_URDU_NUMS[int(d)] for d in frac)
+    return words
+
+
+def digits_to_urdu_words(text: str) -> str:
+    """Replace ASCII digit sequences with Urdu number words, space-separated
+    from neighbouring letters (except a directly attached ordinal suffix)."""
+    def repl(m: re.Match) -> str:
+        words = _spell_number(m.group(0))
+        before = text[m.start() - 1] if m.start() > 0 else " "
+        after = text[m.end():]
+        pre = "" if before.isspace() else " "
+        post = "" if (not after or after[0].isspace()
+                      or _ORDINAL_SUFFIX_RE.match(after)) else " "
+        return pre + words + post
+    return _NUMBER_RE.sub(repl, text)
+
+
 # Diacritics / harakat to strip (Arabic combining marks subset).
 _DIACRITICS = "".join([
     "\u064B", "\u064C", "\u064D", "\u064E", "\u064F", "\u0650",
@@ -65,6 +141,7 @@ _ZERO_WIDTH = "".join(["\u200B", "\u200C", "\u200D", "\u200E", "\u200F", "\uFEFF
 _PUNCT = r"""!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~۔،؟؛«»…“”‘’"""
 
 _CHAR_TABLE = str.maketrans(_CHAR_MAP)
+_DIGIT_TABLE = str.maketrans(_DIGIT_MAP)
 _HAMZA_MADDA_TABLE = str.maketrans(_HAMZA_MADDA_MAP)
 _DIAC_RE = re.compile(f"[{_DIACRITICS}]")
 _ZW_RE = re.compile(f"[{_ZERO_WIDTH}]")
@@ -78,6 +155,7 @@ class UrduNormalizer:
     merge_hamza_madda: bool = False  # آ->ا, ئ->ی (lossy; off by default)
     strip_diacritics: bool = True
     normalize_digits: bool = True
+    digits_to_words: bool = False    # 25 -> پچیس (WER We Stand refs spell numbers out)
     remove_punct: bool = True     # True for scoring; often False for display
     lower_latin: bool = True
     collapse_whitespace: bool = True
@@ -87,21 +165,24 @@ class UrduNormalizer:
             return ""
         text = unicodedata.normalize("NFC", text)          # 1. canonical compose
         text = _ZW_RE.sub("", text)                         # 2. drop zero-width
+        if self.normalize_digits or self.digits_to_words:   # 3. digits -> ASCII
+            text = text.translate(_DIGIT_TABLE)
+        if self.digits_to_words:                            # 4. digits -> words
+            text = digits_to_urdu_words(text)               #    (before char maps,
+                                                            #    so words get mapped too)
         text = text.replace(_DECOMPOSED_YEH_HAMZA, "\u0626")
-        if self.map_confusables:                            # 3. Arabic -> Urdu
+        if self.map_confusables:                            # 5. Arabic -> Urdu
             text = text.translate(_CHAR_TABLE)
-        if self.merge_hamza_madda:                          # 3b. آ->ا, ئ->ی
+        if self.merge_hamza_madda:                          # 5b. آ->ا, ئ->ی
             text = text.translate(_HAMZA_MADDA_TABLE)
-        if self.strip_diacritics:                           # 4. strip harakat
+        if self.strip_diacritics:                           # 6. strip harakat
             text = _DIAC_RE.sub("", text)
-        if self.normalize_digits:                           # 5. digits -> ASCII
-            text = text.translate(str.maketrans(_DIGIT_MAP))
-        if self.lower_latin:                                # 6. lowercase Latin
+        if self.lower_latin:                                # 7. lowercase Latin
             text = "".join(c.lower() if c.isascii() and c.isalpha() else c
                            for c in text)
-        if self.remove_punct:                               # 7. drop punctuation
+        if self.remove_punct:                               # 8. drop punctuation
             text = _PUNCT_RE.sub(" ", text)
-        if self.collapse_whitespace:                        # 8. collapse spaces
+        if self.collapse_whitespace:                        # 9. collapse spaces
             text = _WS_RE.sub(" ", text).strip()
         return text
 

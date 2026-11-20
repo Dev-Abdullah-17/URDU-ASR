@@ -65,3 +65,53 @@ def test_merge_hamza_madda_opt_in():
     assert m("آپ") == "اپ"
     assert m("گئی") == "گیی"
     assert m("آئے") == "ایے"
+
+
+# --- digits_to_words ---------------------------------------------------------
+
+from normalize_urdu import urdu_number_words  # noqa: E402
+
+w = UrduNormalizer(digits_to_words=True)
+
+
+def test_number_words_irregular_0_100():
+    assert urdu_number_words(0) == "صفر"
+    assert urdu_number_words(8) == "آٹھ"
+    assert urdu_number_words(11) == "گیارہ"
+    assert urdu_number_words(25) == "پچیس"
+    assert urdu_number_words(49) == "انچاس"
+    assert urdu_number_words(99) == "ننانوے"
+    assert urdu_number_words(100) == "سو"
+
+
+def test_number_words_hundreds_thousands():
+    assert urdu_number_words(101) == "ایک سو ایک"
+    assert urdu_number_words(350) == "تین سو پچاس"
+    assert urdu_number_words(1000) == "ایک ہزار"
+    assert urdu_number_words(2024) == "دو ہزار چوبیس"
+    assert urdu_number_words(12345) == "بارہ ہزار تین سو پینتالیس"
+    assert urdu_number_words(250000) == "دو لاکھ پچاس ہزار"
+
+
+def test_digits_to_words_in_sentence():
+    assert w("میں 25 سال کا ہوں") == "میں پچیس سال کا ہوں"
+    assert w("۱۵ منٹ") == "پندرہ منٹ"                    # Urdu digits too
+    assert w("1,500 روپے") == "ایک ہزار پانچ سو روپے"     # thousands separator
+    assert w("2.5 کلو") == "دو اعشاریہ پانچ کلو"         # decimal
+
+
+def test_digits_to_words_spacing_and_ordinals():
+    assert w("صفحہ12پر") == "صفحہ بارہ پر"     # digits glued to letters get spaced
+    assert w("5واں دن") == "پانچواں دن"         # ordinal suffix stays attached
+
+
+def test_digits_to_words_off_by_default():
+    assert n("میں 25 سال") == "میں 25 سال"
+
+
+def test_digits_to_words_respects_hamza_merge():
+    # number words containing ئ / آ follow the merge flag like any other word
+    m = UrduNormalizer(digits_to_words=True, merge_hamza_madda=True)
+    assert m("22") == "باییس"
+    assert m("8") == "اٹھ"
+    assert w("22") == "بائیس"
