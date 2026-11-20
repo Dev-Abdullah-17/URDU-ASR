@@ -6,14 +6,18 @@ overfits a tiny subset first. ALWAYS run the smoke test before a long run: if th
 model cannot drive loss down on 20 samples, the pipeline is broken -- stop.
 
 Examples:
+    # --dataset is required. Common Voice left the Hugging Face Hub in Oct 2025
+    # (now distributed via the Mozilla Data Collective), so there is no default.
+
     # Sanity check first (a few minutes):
-    python src/train_whisper_lora.py --smoke-test
+    python src/train_whisper_lora.py --smoke-test \
+        --dataset google/fleurs --config ur_pk --text-column transcription
 
     # Real run:
     python src/train_whisper_lora.py \
         --base-model openai/whisper-small \
-        --dataset mozilla-foundation/common_voice_17_0 --config ur \
-        --text-column sentence --train-split train --eval-split validation \
+        --dataset google/fleurs --config ur_pk \
+        --text-column transcription --train-split train --eval-split validation \
         --output-dir checkpoints/whisper-small-ur-lora \
         --epochs 3 --batch-size 8 --grad-accum 2 --lr 1e-4
 """
@@ -60,8 +64,10 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--base-model", default="openai/whisper-small")
-    p.add_argument("--dataset", default="mozilla-foundation/common_voice_17_0")
-    p.add_argument("--config", default="ur")
+    p.add_argument("--dataset", required=True,
+                   help="HF dataset id or local loader path. No default: Common Voice "
+                        "left the HF Hub in Oct 2025 (now Mozilla Data Collective).")
+    p.add_argument("--config", default=None)
     p.add_argument("--audio-column", default="audio")
     p.add_argument("--text-column", default="sentence")
     p.add_argument("--train-split", default="train")

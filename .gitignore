@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Project artefacts (never commit; see CLAUDE.md rule 5)
+data/*
+checkpoints/
+results/*
+# ...except these, which contain no reference text (see CLAUDE.md rule 5):
+!results/README.md
+!results/reeval_table.csv
+!results/reeval_table.md
+!data/codeswitch_labels_template.csv
+wandb/
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+
+# External downloads / caches
+external/
+.cache/
+
+# Env / secrets
+.env

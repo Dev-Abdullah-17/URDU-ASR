@@ -14,7 +14,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 pytest -q                                   # verify the normalizer
 python src/evaluate_baseline.py --model openai/whisper-small \
-  --dataset google/fleurs --config ur_in --split test \
+  --dataset google/fleurs --config ur_pk --split test \
   --text-column transcription --max-samples 200 \
   --out results/baseline.json               # Phase 0: get your baseline numbers
 ```
