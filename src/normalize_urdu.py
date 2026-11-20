@@ -205,9 +205,68 @@ display_normalizer = UrduNormalizer(remove_punct=False)
 
 
 def is_code_switched(text: str, min_latin_chars: int = 2) -> bool:
-    """Heuristic: utterance contains a run of Latin letters (English code-switch)."""
+    """Original heuristic: utterance contains a run of Latin letters.
+
+    Kept unchanged for comparison. It misses English written in Urdu script
+    (e.g. میٹنگ), which is how most Urdu transcripts encode code-switching;
+    see `code_switch_method` for the extended detector.
+    """
     latin = re.findall(r"[A-Za-z]+", text or "")
     return sum(len(w) for w in latin) >= min_latin_chars
+
+
+# English loanwords commonly written in Urdu script in conversational speech.
+# Deliberately small and conservative: words that are also native Urdu words
+# (بس "enough", کال "time/famine", سر "head", کار "work") are excluded, as are
+# long-assimilated words that are not perceived as switching (ڈاکٹر, سکول,
+# ہسپتال, ٹرین). Spelling variants are listed explicitly. Matching is done after
+# normalising both sides with merge_hamza_madda=True, so آ/ا and ئ/ی variants
+# also match. Extend this list as the benchmark grows.
+URDU_SCRIPT_LOANWORDS = frozenset("""
+میٹنگ آفس آفیس کمپیوٹر لیپٹاپ موبائل فون ٹائم پلیز سوری تھینک تھینکس تھینکیو
+اوکے پرابلم سسٹم پروگرام پراجیکٹ پروجیکٹ رپورٹ میسج میسیج ٹیکسٹ ویڈیو انٹرنیٹ
+آنلائن ویبسائٹ کمپنی مینیجر منیجر باس بزنس مارکیٹ کلاس ٹیچر میڈم ٹیسٹ ریزلٹ
+اسائنمنٹ ڈیڈلائن فائل ڈیٹا سافٹویئر ایپ ایپلیکیشن سپورٹ ٹیم پلان پلاننگ آئیڈیا
+ریسٹورنٹ شاپنگ ٹینشن فرینڈ فرینڈز فیملی ہیلو بائے گڈ ویری ریئلی ایکچوئلی ایکچولی
+بیسیکلی ویکینڈ ڈیپارٹمنٹ پریزنٹیشن جاب آفر سیلری انٹرویو کانفرنس ایونٹ پارٹی
+لیول پرسنٹ پرسنٹیج ٹاپک سبجیکٹ ایکسپیرینس ڈسکس ڈسکشن مینیج کنفرم اپڈیٹ
+""".split())
+
+# Two-token spellings of loanwords (matched as token bigrams).
+URDU_SCRIPT_LOAN_PHRASES = frozenset({
+    "لیپ ٹاپ", "ای میل", "آن لائن", "ویب سائٹ", "ڈیڈ لائن", "سافٹ ویئر",
+    "ویک اینڈ", "بیک گراؤنڈ", "اپ ڈیٹ",
+})
+
+_LOAN_NORM = UrduNormalizer(merge_hamza_madda=True)
+_LOAN_TOKENS = frozenset(_LOAN_NORM(w) for w in URDU_SCRIPT_LOANWORDS)
+_LOAN_BIGRAMS = frozenset(_LOAN_NORM(p) for p in URDU_SCRIPT_LOAN_PHRASES)
+
+
+def find_loanwords(text: str) -> list[str]:
+    """Return Urdu-script English loanwords (normalised) found in `text`."""
+    toks = _LOAN_NORM(text or "").split()
+    hits = [" ".join(toks[i:i + 2]) for i in range(len(toks) - 1)
+            if " ".join(toks[i:i + 2]) in _LOAN_BIGRAMS]
+    hits += [t for t in toks if t in _LOAN_TOKENS]
+    return hits
+
+
+def code_switch_method(text: str, min_latin_chars: int = 2) -> str:
+    """Which detector flags `text` as code-switched.
+
+    Returns "latin" (original Latin-letter heuristic only), "loanword"
+    (Urdu-script loanword list only), "both", or "none".
+    """
+    latin = is_code_switched(text, min_latin_chars)
+    loan = bool(find_loanwords(text))
+    return {(True, True): "both", (True, False): "latin",
+            (False, True): "loanword", (False, False): "none"}[(latin, loan)]
+
+
+def is_code_switched_extended(text: str, min_latin_chars: int = 2) -> bool:
+    """Latin-letter heuristic OR Urdu-script loanword list."""
+    return code_switch_method(text, min_latin_chars) != "none"
 
 
 if __name__ == "__main__":

@@ -137,3 +137,40 @@ def test_latin_tokens_drop():
 def test_latin_tokens_invalid_mode():
     with pytest.raises(ValueError):
         UrduNormalizer(latin_tokens="transliterate")
+
+
+# --- code-switch detection ---------------------------------------------------
+
+from normalize_urdu import (  # noqa: E402
+    code_switch_method, find_loanwords, is_code_switched_extended,
+)
+
+
+def test_old_heuristic_misses_urdu_script_loanword():
+    assert is_code_switched("کل میٹنگ ہے") is False   # the gap being fixed
+
+
+def test_loanword_detected():
+    assert find_loanwords("کل میٹنگ ہے") == ["میٹنگ"]
+    assert code_switch_method("کل میٹنگ ہے") == "loanword"
+    assert is_code_switched_extended("کل میٹنگ ہے") is True
+
+
+def test_loanword_bigram():
+    assert "ای میل" in find_loanwords("مجھے ای میل کر دیں")
+
+
+def test_loanword_alef_madda_variant():
+    # آفس written without madda still matches
+    assert code_switch_method("وہ افس گیا") == "loanword"
+
+
+def test_method_latin_and_both():
+    assert code_switch_method("کل meeting ہے") == "latin"
+    assert code_switch_method("meeting کے بعد آفس جاؤں گا") == "both"
+
+
+def test_native_homographs_not_flagged():
+    # بس ("enough"), سر ("head"), کار ("work") are native Urdu words
+    assert code_switch_method("بس کرو میرا سر درد کر رہا ہے") == "none"
+    assert code_switch_method("یہ میرا کاروبار ہے") == "none"
