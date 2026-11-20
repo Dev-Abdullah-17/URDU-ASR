@@ -9,7 +9,7 @@ Example:
     python src/evaluate_model.py \
         --base-model openai/whisper-small \
         --adapter checkpoints/whisper-small-ur-lora \
-        --dataset google/fleurs --config ur_in --split test \
+        --dataset google/fleurs --config ur_pk --split test \
         --text-column transcription \
         --out-json results/ft_whisper_small.json \
         --out-csv results/ft_whisper_small_per_utt.csv

@@ -47,7 +47,7 @@ python -m venv .venv && source .venv/bin/activate && pip install -r requirements
 
 # Phase 0 baseline (FLEURS Urdu)
 python src/evaluate_baseline.py --model openai/whisper-small \
-  --dataset google/fleurs --config ur_in --split test \
+  --dataset google/fleurs --config ur_pk --split test \
   --text-column transcription --max-samples 200 \
   --out results/baseline_whisper_small.json
 
@@ -59,7 +59,7 @@ python src/train_whisper_lora.py --base-model openai/whisper-small \
 # Phase 3 evaluate fine-tuned
 python src/evaluate_model.py --base-model openai/whisper-small \
   --adapter checkpoints/whisper-small-ur-lora \
-  --dataset google/fleurs --config ur_in --split test \
+  --dataset google/fleurs --config ur_pk --split test \
   --text-column transcription --out-json results/ft.json --out-csv results/ft.csv
 
 # tests + demo

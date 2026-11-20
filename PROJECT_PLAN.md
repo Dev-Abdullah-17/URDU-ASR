@@ -74,7 +74,7 @@ If a box isn't checked, it isn't done. Track these in your issue tracker.
 ```
                  ┌─────────────────────────────────────────────────────────┐
                  │                     DATA LAYER                           │
-  Open corpora   │  Common Voice (ur)  ·  FLEURS (ur_in)  ·  ARL/CSaLT      │
+  Open corpora   │  Common Voice (ur)  ·  FLEURS (ur_pk)  ·  ARL/CSaLT      │
   (read speech)  │            │                                            │
                  │            ▼                                            │
   Collected      │  YouTube/podcasts ──▶ collect_audio.py ──▶ manifest ──▶ │
@@ -188,7 +188,7 @@ huggingface-cli login
 | Name | Type | Role | License | Access | Size |
 |---|---|---|---|---|---|
 | Mozilla Common Voice (ur) | Read | Fine-tune fuel + baseline | CC0 | HF (`mozilla-foundation/common_voice_17_0`, `ur`); login + accept terms | Growing; hours-scale |
-| Google FLEURS (ur_in) | Read | Standard benchmark | CC-BY | HF (`google/fleurs`, `ur_in`) | ~10h test/dev/train |
+| Google FLEURS (ur_pk) | Read | Standard benchmark | CC-BY | HF (`google/fleurs`, `ur_pk`) | ~10h test/dev/train |
 | ARL Urdu Speech DB | Read | Extra read baseline | Research | Request from source | ~160k files |
 | CSaLT Urdu | Read | Extra read baseline | Research | Request | — |
 | WER We Stand release | Conversational + models + scripts | **Reproduce baselines; extend the conversational set** | Per repo | arXiv:2409.11252 links | ~1.3h conv. |
@@ -247,7 +247,7 @@ Each phase lists: **Goal → Steps → Acceptance check → Claude Code prompt.*
 monolingual WER + CER for ≥2 models. You can state "zero-shot Whisper-small = X% WER".
 **Claude Code prompt:** *"Read PROJECT_PLAN.md §9 Phase 0. Set up the venv, run the
 normalizer tests, then run evaluate_baseline.py for openai/whisper-small and
-facebook/mms-1b-all on FLEURS ur_in test with --max-samples 200, and summarize the
+facebook/mms-1b-all on FLEURS ur_pk test with --max-samples 200, and summarize the
 WER/CER results in a markdown table."*
 
 ### Phase 1 — Data assembly & collection (weeks 1–3)

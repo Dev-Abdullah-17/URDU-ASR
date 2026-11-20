@@ -8,7 +8,7 @@ Examples:
     # FLEURS Urdu (text column is `transcription`):
     python src/evaluate_baseline.py \
         --model openai/whisper-small \
-        --dataset google/fleurs --config ur_in --split test \
+        --dataset google/fleurs --config ur_pk --split test \
         --text-column transcription --max-samples 200 \
         --out results/baseline_whisper_small_fleurs.json
 
