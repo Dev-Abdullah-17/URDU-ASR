@@ -16,6 +16,7 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
 - `src/collect_audio.py` — Phase 1: prepare raw audio chunks for manual transcription.
 - `src/train_whisper_lora.py` — Phase 2: LoRA fine-tuning (has `--smoke-test`).
 - `src/evaluate_model.py` — Phase 3: evaluate fine-tuned model, code-switch split, per-utterance CSV.
+- `src/reeval_wws.py` — re-evaluation of WER We Stand released outputs (normalization / aggregation / ranking study).
 - `app/app.py` — Phase 4: Gradio voice demo.
 - `tests/` — unit tests (`pytest -q`).
 
@@ -67,4 +68,8 @@ python src/evaluate_model.py --base-model openai/whisper-small \
 # tests + demo
 pytest -q
 python app/app.py
+
+# WER We Stand re-evaluation (needs huggingface.co access for references)
+git clone https://github.com/sameearif/WER-We-Stand external/WER-We-Stand
+python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results
 ```
