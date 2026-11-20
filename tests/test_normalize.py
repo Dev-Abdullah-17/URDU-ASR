@@ -115,3 +115,25 @@ def test_digits_to_words_respects_hamza_merge():
     assert m("22") == "باییس"
     assert m("8") == "اٹھ"
     assert w("22") == "بائیس"
+
+
+# --- latin_tokens ------------------------------------------------------------
+
+import pytest  # noqa: E402
+
+
+def test_latin_tokens_keep_default():
+    assert n("کل Meeting ہے") == "کل meeting ہے"
+
+
+def test_latin_tokens_drop():
+    d = UrduNormalizer(latin_tokens="drop")
+    assert d("کل Meeting ہے") == "کل ہے"
+    assert d("یہ project بہت important ہے") == "یہ بہت ہے"
+    assert d("e-mail بھیج دیں") == "بھیج دیں"      # punct split first, both parts dropped
+    assert d("سب ٹھیک ہے") == "سب ٹھیک ہے"         # pure Urdu untouched
+
+
+def test_latin_tokens_invalid_mode():
+    with pytest.raises(ValueError):
+        UrduNormalizer(latin_tokens="transliterate")

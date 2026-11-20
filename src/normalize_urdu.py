@@ -149,6 +149,10 @@ _PUNCT_RE = re.compile(f"[{re.escape(_PUNCT)}]")
 _WS_RE = re.compile(r"\s+")
 
 
+_LATIN_TOKEN_MODES = ("keep", "drop")
+_LATIN_TOKEN_RE = re.compile(r"\S*[A-Za-z]\S*")
+
+
 @dataclass
 class UrduNormalizer:
     map_confusables: bool = True
@@ -158,7 +162,13 @@ class UrduNormalizer:
     digits_to_words: bool = False    # 25 -> پچیس (WER We Stand refs spell numbers out)
     remove_punct: bool = True     # True for scoring; often False for display
     lower_latin: bool = True
+    latin_tokens: str = "keep"      # "keep" | "drop": drop tokens with Latin letters
     collapse_whitespace: bool = True
+
+    def __post_init__(self):
+        if self.latin_tokens not in _LATIN_TOKEN_MODES:
+            raise ValueError(f"latin_tokens must be one of {_LATIN_TOKEN_MODES}, "
+                             f"got {self.latin_tokens!r}")
 
     def __call__(self, text: str) -> str:
         if not text:
@@ -182,6 +192,8 @@ class UrduNormalizer:
                            for c in text)
         if self.remove_punct:                               # 8. drop punctuation
             text = _PUNCT_RE.sub(" ", text)
+        if self.latin_tokens == "drop":                     # 8b. drop Latin tokens
+            text = _LATIN_TOKEN_RE.sub(" ", text)
         if self.collapse_whitespace:                        # 9. collapse spaces
             text = _WS_RE.sub(" ", text).strip()
         return text
