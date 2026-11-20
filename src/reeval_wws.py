@@ -71,7 +71,7 @@ N_MODELS = 17
 SEED = 42
 N_BOOT = 1000
 
-# Paper Table 3, "Conversational Speech" column (arXiv:2409.11252v2), keyed by
+# Paper Table 3, "Conversational Speech" column (arXiv:2409.11252), keyed by
 # output directory name. Used only to sanity-check the as_released reproduction.
 PAPER_WER = {
     "whisper-tiny": 163.18, "whisper-tiny-ur": 59.99,
@@ -140,6 +140,11 @@ def load_references(args) -> tuple[list[str], dict]:
         refs = list(ds["transcription"])     # column used by compute_wer_csalt
         source = {"hf_dataset": args.hf_dataset,
                   "fingerprint": getattr(ds, "_fingerprint", None)}
+        try:
+            from huggingface_hub import HfApi
+            source["revision"] = HfApi().dataset_info(args.hf_dataset).sha
+        except Exception as e:  # provenance only; never fatal
+            source["revision"] = f"unavailable: {e.__class__.__name__}"
         if args.cache_refs:
             os.makedirs(os.path.dirname(args.cache_refs) or ".", exist_ok=True)
             with open(args.cache_refs, "w", encoding="utf-8") as f:
