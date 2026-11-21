@@ -229,8 +229,9 @@ metric:
 | corpus WER | 7 of 16 | 5 (as_released~) / 6 (N7_numwords) of 16 |
 | corpus CER | 7 of 16 | 6 of 16 |
 
-Two of the pairs that drop out under Holm sit at p_holm = 0.0519, just above 0.05 and near is the
-resolution limit described above. Both are in the utterance-averaged ranking:
+Two of the pairs that drop out under Holm sit at p_holm = 0.0519, just above
+0.05. With B = 1000, a p this close to the threshold could flip with more
+resamples (see the resolution limit above). Both are in the utterance-averaged ranking:
 seamless-m4t-medium-ur vs hf-seamless-m4t-medium, and whisper-small-ur vs
 whisper-medium. For whisper-large-v3 vs whisper-large-v3-ur, p_boot is
 0.48–0.99 and p_holm is 1.0 for every metric and both conditions.
