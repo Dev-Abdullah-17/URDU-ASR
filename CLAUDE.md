@@ -28,9 +28,12 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
    must show loss decreasing on 20 samples. If it can't overfit 20 samples, the
    pipeline is broken — fix it before launching a real run.
 3. **Single GPU, fixed seed.** Set `--seed` and keep runs single-GPU on free tiers.
-4. **Pin versions.** Use `requirements.txt` (ranges) and `requirements.lock` (exact
-   pins; regenerate with the `uv pip compile` command in README.md whenever
-   requirements.txt changes). If you hit fp16 NaNs, prefer bf16 where supported; on T4/P100 (no bf16) keep fp16 loss-scaling default and reduce LR.
+4. **Pin versions.** Use `requirements.txt` (ranges) and `requirements.lock`
+   (exact pins; regenerate with the `uv pip compile` command in README.md
+   whenever requirements.txt changes; CI fails on a stale lock). The lock's
+   torch is a CUDA 13 build (Turing or newer); see README.md for P100.
+   If you hit fp16 NaNs, prefer bf16 where supported; on T4/P100 (no bf16)
+   keep fp16 loss-scaling default and reduce LR.
 5. **Never commit `data/`, `checkpoints/`, `results/`, or audio.** They're gitignored.
    Exceptions (whitelisted in `.gitignore`), because they contain no reference text:
    `results/README.md` and `results/reeval_{table,pairwise,length_buckets,cs_by_length}.{csv,md}`
