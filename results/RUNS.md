@@ -128,3 +128,20 @@ Logged after the fact: this run predates `RUNS.md`. Details reconstructed from
   - Slope chart: title reads "(Kendall's τ = 0.897)" over "as released~ (reproduction of the published scoring)", and the computed τ matches the table's `kendall_tau_vs_as_released` for corpus_wer (0.897). Left header reads "(the paper's metric)". 17 models appear on each side. Spot-checked against `reeval_table.csv` (overall, as_released~): seamless-m4t-v2-large utt 29.85 (rank 7) / corpus 32.99 (rank 8); mms-1b-ur utt 42.45 (rank 10) / corpus 42.09 (rank 9). Both match.
   - Length chart: suptitle ends with "— as released~ (reproduction of the published scoring)"; the footnote reads "The ≤5 bucket has only 12 utterances (0.3% of words)"; 5 models in both panels; n = 12/103/356 and 115/149/115/92. All markers are visible (zoomed crop of the finer split), legend lines are solid, and no text overlaps.
 - Warnings: none.
+
+## 2026-11-21T12:50:20Z — make_figures.py re-run after "approximate reproduction" title label
+
+- Worktree / branch: `/home/user/wt/e` / `readme-review`
+- Commit: `7ce92d49c45291a60a67d5a7cdb14994971e1adb` ("results/README: address research-critic review (13 issues)"); this commit changes the `as_released~` condition label in `src/make_figures.py` to "as released~ (approximate reproduction of the published scoring)". This is the only change that affects the figures.
+- Tree state before run: clean (`git status --porcelain` empty).
+- Command (from repo root): `python3 src/make_figures.py --results-dir results` (default `--condition as_released~`)
+- Exit status: 0; wall time: 1.80 s
+- Environment: Python 3.13.18, matplotlib 3.11.2 (Agg), scipy 1.18.1
+- Inputs (working-tree blob == `HEAD:<file>` blob): `results/reeval_table.csv` `a55dcad3b2201fdc3dc338ea1a4b470b5267ccb3`; `results/reeval_length_buckets.csv` `7666fecb0424dad745521076c8740d5d4f45676d`
+- Outputs:
+  - `results/figures/rank_slope_utt_vs_corpus.png` — 1080x960 px, 224837 bytes, sha256 `6b2fcba98dfa6a532d5abf2c65adcb9b12f9da45214ea7c5529bd2084c984597`
+  - `results/figures/wer_by_length_top5.png` — 1440x630 px, 153463 bytes, sha256 `c50d70cff3b19cce83389ce2c71867f305e069969304e18722726d4622699bc1`
+- Sanity checks:
+  - Slope chart: two-line title, "... (Kendall's τ = 0.897)" over "as released~ (approximate reproduction of the published scoring)". Neither line is clipped or overlaps the column headers. 17 models appear on each side, with values and ranks the same as in the previous run.
+  - Length chart: the one-line suptitle ends with "— as released~ (approximate reproduction of the published scoring)". A zoomed crop shows the closing parenthesis is fully inside the right edge (it ends about 80 px before the edge). The footnote is unchanged and not clipped. A zoomed crop of the finer split shows all markers, including the orange squares at 16-30 and 31-50. Nothing overlaps.
+- Warnings: none.
