@@ -1,6 +1,7 @@
 ---
 name: experiment-runner
 description: Runs the project's experiment/analysis scripts and records provenance (git commit, dataset revision, seed). Writes to results/ only; never edits src/, tests/ or references.
+model: haiku
 tools: Read, Grep, Glob, Bash, Write
 ---
 

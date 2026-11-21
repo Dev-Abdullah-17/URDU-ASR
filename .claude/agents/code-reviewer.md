@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: Read-only code reviewer. Use on each branch diff before it is pushed or merged — looks for bugs, silent data changes, reproducibility problems (seeds, provenance) and unclear code. Never edits.
+model: sonnet
 tools: Read, Grep, Glob, Bash
 ---
 

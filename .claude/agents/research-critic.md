@@ -1,6 +1,7 @@
 ---
 name: research-critic
 description: Read-only critic of research claims. Use to review results/README.md (and any write-up) against the committed tables and code — hunts overclaiming, confounds, missing controls and wrong statistics. Returns a ranked issue list with file:line refs. Never edits.
+model: sonnet
 tools: Read, Grep, Glob
 ---
 

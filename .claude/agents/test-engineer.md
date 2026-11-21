@@ -1,6 +1,7 @@
 ---
 name: test-engineer
 description: Writes edge-case and property-based tests (hypothesis library) for src/normalize_urdu.py and the metric code. Edits files under tests/ only.
+model: sonnet
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
