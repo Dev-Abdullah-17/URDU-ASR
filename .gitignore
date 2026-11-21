@@ -15,6 +15,13 @@ results/*
 !results/README.md
 !results/reeval_table.csv
 !results/reeval_table.md
+!results/reeval_pairwise.csv
+!results/reeval_pairwise.md
+!results/reeval_length_buckets.csv
+!results/reeval_length_buckets.md
+!results/reeval_cs_by_length.csv
+!results/reeval_cs_by_length.md
+!results/RUNS.md
 !data/codeswitch_labels_template.csv
 wandb/
 *.wav
