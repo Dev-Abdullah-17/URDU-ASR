@@ -45,7 +45,7 @@ CONDITIONS = ("as_released~", "N7_numwords")   # both tables carry these
 
 def condition_label(condition: str) -> str:
     if condition == "as_released~":
-        return "as released~ (reproduction of the published scoring)"
+        return "as released~ (approximate reproduction of the published scoring)"
     return f"{condition} (our normalizer, both sides)"
 
 plt.rcParams.update({

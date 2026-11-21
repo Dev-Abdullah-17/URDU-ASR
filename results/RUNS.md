@@ -2,6 +2,22 @@
 
 Append-only record of experiment/analysis runs (no reference text).
 
+## 2026-11-20 (retrospective) — reeval_wws.py (produced reeval_table.*)
+
+Logged after the fact: this run predates `RUNS.md`. Details reconstructed from
+`results/reeval_meta.json` and the commit that added the tables.
+
+- Command: `python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results`
+- Code: `src/reeval_wws.py` as of commit f1c91c8 (tables committed in 0bd9e36)
+- WER-We-Stand commit: `9dd7f4d0580a608e53942916a37d4d417328b1b6`
+- References: HF `urdu-asr/csalt-voice` revision `6f0c4fdeea94c77b4b64c4b88d5887e087566a5f`
+  (datasets fingerprint `83e8388afd07c2f4`), 471 utterances, split `validation`
+- Models: 17; chars.json: not available (stand-in label `as_released~`)
+- Bootstrap: 1000 resamples, seed 42, paired
+- Wall time: about 25 s (CPU)
+- Outputs: reeval_table.csv/.md (committed); reeval_per_utt.csv, reeval_codeswitch_flags.csv,
+  csalt_voice_refs.json, reeval_meta.json (local only; contain reference text or provenance)
+
 ## 2026-11-21T12:32:39Z — reeval_analysis (Holm–Bonferroni columns)
 
 - Worktree / branch: `/home/user/wt/c` / `holm-correction`

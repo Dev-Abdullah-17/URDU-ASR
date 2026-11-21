@@ -16,20 +16,23 @@ set `urdu-asr/csalt-voice`.
 | `reeval_pairwise.{csv,md}` | yes | paired bootstrap of adjacent-model differences (finding 1) |
 | `reeval_length_buckets.{csv,md}` | yes | WER/CER by reference-length bucket (finding 2) |
 | `reeval_cs_by_length.{csv,md}` | yes | code-switch flag vs length (finding 3) |
+| `figures/*.png` | yes | figures built from the committed tables (`src/make_figures.py`) |
+| `RUNS.md` | yes | run log: commit, command, provenance, outputs (no reference text) |
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/sameearif/WER-We-Stand external/WER-We-Stand
 python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results
-python src/reeval_analysis.py --results-dir results   # follow-up analyses (~3 s)
+python src/reeval_analysis.py --results-dir results   # follow-up analyses (~4–5 s)
 ```
 
-The run takes about 25 s on CPU. Provenance of the committed tables:
+`reeval_wws.py` takes about 25 s on CPU (run of 2026-11-20, logged
+retrospectively in `RUNS.md`). Provenance of the committed tables:
 
 - WER-We-Stand repo commit `9dd7f4d0580a608e53942916a37d4d417328b1b6`
 - `urdu-asr/csalt-voice` revision `6f0c4fdeea94c77b4b64c4b88d5887e087566a5f`.
-  This is the only dataset in the `urdu-asr` org. It has a single `validation`
+  As of 2026-11-20 this was the only dataset in the `urdu-asr` org. It has a single `validation`
   split with 471 rows.
 - Bootstrap: 1000 resamples of utterances, seed 42. The same resampled index sets
   are used for every model and condition (paired).
@@ -93,17 +96,19 @@ Released code, `src/wer.py` at commit `9dd7f4d`, lines 37–43
 ```
 
 In these lines, the character filter, `#\S+` removal and whitespace collapsing
-are applied to the model output (`item`). The reference
+are applied to the model output (`item`), in that order, so the `#\S+`
+pattern only matches if `#` is in `chars.json`. With our stand-in inventory `#`
+is not, so the pattern does nothing and only the character filter removes tag
+text. The reference
 `dataset[i]["transcription"]` is passed to `wer` without modification. The
 module-level pattern `r'[،.!\'"]'` (line 14) is applied to references only in
-`compute_wer_arl`, not in `compute_wer_csalt`. The paper (§3.2.2) says
-transcription was carried out in three passes. In the current dataset revision,
-the `transcription` column contains no punctuation characters (see the inventory
+`compute_wer_arl`, not in `compute_wer_csalt`. In the current dataset revision, the
+`transcription` column contains no punctuation characters (see the inventory
 below).
 
 ## Results summary
 
-All numbers are % over all 471 utterances. Full tables with CIs are in
+All numbers are % over all 471 utterances unless a subset is named. Full tables with CIs are in
 `reeval_table.md`.
 
 ### Effect of normalization
@@ -112,14 +117,47 @@ All numbers are % over all 471 utterances. Full tables with CIs are in
 
 - `raw` vs `as_released~`: differs by 0.00 (mms-1b-all) to +2.99 (whisper-medium) points.
 - `N7_numwords` vs `as_released~`: differs by −0.11 to +0.31 points.
-- Kendall's τ vs the as-released ranking is 0.971 for `raw` and 1.000 for N2–N8.
+- Kendall's τ vs the as-released ranking is 0.971 for `raw` and `N1_unicode`,
+  0.985 for `N7+hamza_merge`, and 1.000 for N2–N8.
 
 **Corpus WER:**
 
 - `N7+hamza_merge` vs `N7_numwords`: lower by 0.07 (whisper-tiny) to 1.02 (mms-300m-ur) points.
 - `N8_latin_drop` vs `N7_numwords`: differs by −0.37 to 0.00 points. The
   references contain no Latin letters, so this step removes Latin tokens from
-  hypotheses only.
+  hypotheses only. In practice these tokens are almost all Seamless disfluency
+  tags (`#…`), see below.
+
+**Disfluency tags (affects N1–N7).** The four Seamless models mark disfluencies
+with `#`-prefixed tags; no Whisper or MMS output contains `#`. Utterances with a
+tag:
+
+| model | utterances with a tag |
+|---|---|
+| hf-seamless-m4t-medium | 51 |
+| seamless-m4t-v2-large-ur | 36 |
+| seamless-m4t-medium-ur | 35 |
+| seamless-m4t-v2-large | 19 |
+
+The paper (§4) says disfluencies were removed before scoring. Our normalizer
+has no disfluency step. N2 strips the `#` but keeps the tag's word, so in N2–N7
+each tag counts as an insertion. 195 of the 204 tag bodies are Latin and are
+removed only in N8. Every utterance whose errors change from N7 to N8 contains
+a tag, except one whisper-large-v3 utterance (0.01 points). The resulting
+corpus WER penalty in N7 is:
+
+| model | N7 corpus WER penalty (pts) |
+|---|---|
+| hf-seamless-m4t-medium | 0.37 |
+| seamless-m4t-v2-large-ur | 0.30 |
+| seamless-m4t-medium-ur | 0.27 |
+| seamless-m4t-v2-large | 0.10 |
+
+The +0.31 maximum of N7 vs `as_released~` above (seamless-m4t-medium-ur) is the
+same effect. Findings 1 and 3 use `N7_numwords`, so Seamless results there carry
+this penalty relative to the paper's stated protocol. A disfluency-removal step
+(drop `#\S+` before punctuation removal, both sides) is a planned normalizer
+addition; it has not been applied to these tables.
 
 ### Effect of aggregation (utterance-averaged vs corpus-level)
 
@@ -133,10 +171,12 @@ Under `as_released~`:
   whisper-large-v3-ur 1 by utterance-averaged WER (17.68).
 - Ranks 3–5 reorder among the three Seamless models.
 
-Under `N7_numwords`, the 95% CIs of the top two models overlap:
-
-- whisper-large-v3: corpus WER 16.30 [15.12, 17.54]
-- whisper-large-v3-ur: corpus WER 16.25 [14.92, 17.81]
+Neither reordering is statistically supported (finding 1), and the top-two order
+is not stable across conditions. Under `N7_numwords` corpus WER it reverts
+(whisper-large-v3-ur 16.25, whisper-large-v3 16.30). Under `raw` it is the
+other way round: whisper-large-v3 ranks first even on utterance-averaged WER.
+The paired difference (whisper-large-v3 minus whisper-large-v3-ur, N7 corpus
+WER) is +0.05 [−1.38, 1.31].
 
 ### Code-switched vs monolingual
 
@@ -169,14 +209,17 @@ These analyses use the `as_released~` and `N7_numwords` conditions. The bootstra
 index matrix is the same as above (1000 × 471, seed 42).
 
 **Limitations common to all three:**
-- Resampling treats utterances as independent. Utterances come from a few
-  recorded sessions with 10 speakers (paper §3.2.2), and utterances from the
-  same session are likely correlated. A session- or speaker-level bootstrap
+- Resampling treats utterances as independent. Utterances come from six
+  recorded sessions (four pairs, one group of 3, one of 4) with 10 speakers
+  (paper §3.2.2). That is 15 participant slots, so speakers recur across
+  sessions and session and speaker clusters overlap. Utterances from the same
+  session or speaker are likely correlated. A session- or speaker-level bootstrap
   would probably give wider intervals. The dataset does not include session or
   speaker ids, so this was not run.
 - Multiple comparisons: findings 1 and 3 report Holm–Bonferroni adjusted
   p-values (`p_holm`, `reject_holm_05`) alongside the unadjusted 95% CIs.
-  Families are defined per table (below), not across the whole study.
+  Families are defined per table (below), not across the whole study. Seamless
+  results in `N7_numwords` include the disfluency-tag penalty described above.
   `p_boot` is a two-sided bootstrap p-value, 2·min(#Δ≤0 + 1, #Δ≥0 + 1)/(B + 1).
   With B = 1000 its smallest value is 0.002, which limits how small an
   adjusted p can get (16 × 0.002 = 0.032 for the smallest p in a family of 16).
@@ -229,19 +272,28 @@ metric:
 | corpus WER | 7 of 16 | 5 (as_released~) / 6 (N7_numwords) of 16 |
 | corpus CER | 7 of 16 | 6 of 16 |
 
-Two of the pairs that drop out under Holm sit at p_holm = 0.0519, just above
-0.05. With B = 1000, a p this close to the threshold could flip with more
-resamples (see the resolution limit above). Both are in the utterance-averaged ranking:
-seamless-m4t-medium-ur vs hf-seamless-m4t-medium, and whisper-small-ur vs
-whisper-medium. For whisper-large-v3 vs whisper-large-v3-ur, p_boot is
-0.48–0.99 and p_holm is 1.0 for every metric and both conditions.
+Pairs whose CI excludes 0 but that Holm does not reject, all with
+p_holm < 0.1:
+
+| pair | ranking (condition) | p_boot | p_holm |
+|---|---|---|---|
+| seamless-m4t-medium-ur vs hf-seamless-m4t-medium | utterance-averaged WER (both) | 0.004 | 0.0519 |
+| whisper-small-ur vs whisper-medium | utterance-averaged WER (both) | 0.004 | 0.0519 |
+| whisper-large-v3 vs seamless-m4t-medium-ur | corpus CER (N7_numwords) | 0.006 | 0.0599 |
+| whisper-tiny-ur vs mms-300m-ur | corpus WER (N7_numwords / as_released~) | 0.008 | 0.0799 / 0.0879 |
+
+With B = 1000, p-values this close to the threshold could flip with more
+resamples (see the resolution limit above). For whisper-large-v3 vs
+whisper-large-v3-ur, p_boot is 0.48–0.995 and p_holm is 1.0 for every metric
+and both conditions.
 
 *Limitations:*
 - The test covers adjacent pairs only. A chain like A≈B, B≈C does not mean A≈C.
 - Adjacent pairs are chosen by the point-estimate ranking of the same data they
   are then tested on, so on the ranking's own metric the observed difference is
-  ≥ 0 by construction. The two-sided bootstrap test is still valid, but the
-  pairs are not a pre-registered set.
+  ≥ 0 by construction, and adjacent gaps are order-statistic gaps, biased
+  upward. The p-values are therefore nominal: because pairs were selected on the
+  same data, they are not strictly valid post-selection.
 - `p_boot_delta_le_0` is the one-sided share of resamples; the test statistic is
   the two-sided `p_boot`. Both use the same utterance-level bootstrap, so the
   independence caveat above applies to the adjusted p-values too.
@@ -270,9 +322,13 @@ is 31–50 or >50. Two examples
 - hf-seamless-m4t-medium: 39.8 vs 16.6
 - whisper-small: 91.5 vs 44.2
 
-Models with high WER on short utterances move down the utterance-averaged ranking.
+This does not by itself move a model down the utterance-averaged ranking. Of
+the 13 models whose WER peaks in the ≤15 group, 7 rank worse under utterance
+averaging than under corpus WER, 3 rank better and 3 are unchanged. What
+matters is a model's short-utterance WER *relative to its long-utterance WER
+and to its neighbours'*, as the top-two example shows.
 
-**The top-two swap follows from this.** As-released utterance-averaged WER of
+**The top-two swap is an example of this.** As-released utterance-averaged WER of
 whisper-large-v3 vs whisper-large-v3-ur:
 
 | bucket | whisper-large-v3 | whisper-large-v3-ur |
@@ -280,13 +336,23 @@ whisper-large-v3 vs whisper-large-v3-ur:
 | ≤15 words | 26.7 | 21.7 |
 | >15 words | 15.3 | 16.4 |
 
-The corpus-level weighting is dominated by >15-word utterances.
+The corpus-level weighting is dominated by >15-word utterances. The swap
+itself is within noise (finding 1).
 
 **Whisper base and tiny.** The non-fine-tuned whisper-base and whisper-tiny
 have 70 and 88 utterances, respectively, with more word errors than reference
-words (per-utterance WER > 100%). In the 6–15 bucket, whisper-base's
-utterance-averaged WER is 281.8. This accounts for whisper-base's +31.13-point
-gap between utterance-averaged and corpus WER.
+words (per-utterance WER > 100%). whisper-base's +31.13-point gap between
+utterance-averaged and corpus WER decomposes by bucket as follows:
+
+| bucket | contribution (pts) |
+|---|---|
+| ≤5 | +2.0 |
+| 6–15 | +43.6 (its utterance-averaged WER there is 281.8) |
+| >15 | −14.5 |
+
+whisper-tiny has more insert-heavy utterances (88) and a 6–15 WER of 218.0,
+but only a +10.79 gap. 80 of its 88 insert-heavy utterances are in >15, where
+corpus weighting counts them fully.
 
 *Limitations:*
 - The requested buckets put 92.7% of words in >15 and only 12 utterances in ≤5,
@@ -310,8 +376,14 @@ unflagged ones (median 47.5 vs 26 words). By bucket, flagged utterances number:
 directly. A length-standardised difference then weights each group's per-bucket
 corpus WER (or CER) by the bucket's pooled word share. Only buckets where both
 groups have at least 5 utterances are used: >15 for the requested scheme, and
-16–30, 31–50 and >50 for the fine scheme. All 1000 resamples were usable in
-every case.
+16–30, 31–50 and >50 for the fine scheme. The weights are renormalised over the
+buckets used. All 1000 resamples were usable in every case.
+
+For the requested scheme only >15 qualifies, so that "standardised" result is a
+plain single-bucket comparison. Within it, flagged utterances are longer (mean
+49.4 vs 38.2 words). Standardisation corrects for bucket composition only, not
+for length differences within a bucket. In the fine scheme's >50 bucket the
+means are 72.3 vs 67.7.
 
 **Results under N7_numwords, fine scheme:**
 
@@ -332,8 +404,12 @@ test survives in either scheme.
 For whisper-large-v3-ur, the standardised corpus WER is 14.53 (flagged) vs
 16.43 (unflagged), a difference of −1.90 [−4.97, 1.52].
 
-The lower WER on flagged utterances is not explained by the length
-distributions within these buckets.
+After standardising over length buckets, flagged utterances have lower
+point-estimate WER for 14 of 17 models. The difference is nominally significant
+for only 3 models, and for none after Holm. Length within a bucket is not
+controlled, and the 17 models are scored on the same utterances, so the 14/17
+sign count is not 17 independent replications. This analysis does not
+establish that flagged utterances are easier to recognise.
 
 *Limitations:*
 - The detector is unvalidated. Its precision and recall are pending the manual
@@ -358,11 +434,13 @@ python src/make_figures.py --results-dir results
 
 **`figures/rank_slope_utt_vs_corpus.png`.** Rank of each of the 17 models by
 utterance-averaged WER (left, the paper's metric) and by corpus WER (right),
-under `as_released~`, our reproduction of the published scoring. Its values
+under `as_released~`, our approximate reproduction of the published scoring. Its values
 differ from the paper's Table 3 by up to 0.20 points; the ranking is
 identical. Lines are colored blue where the rank improves under corpus WER,
 orange where it worsens, and gray where it is unchanged. Labels give the WER
-in %. τ = 0.897 is computed from the two plotted rankings.
+in %. τ = 0.897 is computed from the two plotted rankings. The crossings at
+ranks 1–2 and 3–5 are not statistically supported (finding 1), and the top-two
+order changes with normalization (see "Effect of aggregation").
 
 ![WER by reference length, top 5 models](figures/wer_by_length_top5.png)
 
