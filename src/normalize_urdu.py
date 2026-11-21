@@ -109,7 +109,13 @@ _ORDINAL_SUFFIX_RE = re.compile(r"(?:واں|ویں|وی)")
 
 def _spell_number(token: str) -> str:
     whole, _, frac = token.replace(",", "").partition(".")
-    words = urdu_number_words(int(whole))
+    digits = whole.lstrip("0") or "0"
+    if len(digits) > len(str(_MAX_SPOKEN)):
+        # read digit by digit without int(): Python refuses int() on strings
+        # longer than sys.get_int_max_str_digits() (4300 by default)
+        words = " ".join(_URDU_NUMS[int(d)] for d in digits)
+    else:
+        words = urdu_number_words(int(digits))
     if frac:
         words += " " + _DECIMAL_POINT + " " + " ".join(_URDU_NUMS[int(d)] for d in frac)
     return words
@@ -176,22 +182,40 @@ class UrduNormalizer:
             raise ValueError(f"latin_tokens must be one of {_LATIN_TOKEN_MODES}, "
                              f"got {self.latin_tokens!r}")
 
+    # Upper bound on passes in __call__; real text converges after 1-2.
+    _MAX_PASSES = 4
+
     def __call__(self, text: str) -> str:
+        """Normalize `text`. Idempotent: the single-pass pipeline is re-applied
+        until the output stops changing (later steps such as Latin lowercasing
+        or the confusable map can otherwise leave text that a second pass would
+        change, e.g. via NFC recomposition)."""
         if not text:
             return ""
+        for _ in range(self._MAX_PASSES):
+            out = self._one_pass(text)
+            if out == text:
+                break
+            text = out
+        return text
+
+    def _one_pass(self, text: str) -> str:
         if self.strip_disfluency_tags:                      # 0. drop "#um"-style tags
             text = _DISFLUENCY_TAG_RE.sub(" ", text)
-        text = unicodedata.normalize("NFC", text)          # 1. canonical compose
-        text = _ZW_RE.sub("", text)                         # 2. drop zero-width
-        if self.normalize_digits or self.digits_to_words:   # 3. digits -> ASCII
+        text = _ZW_RE.sub("", text)                         # 1. drop zero-width (before
+        text = unicodedata.normalize("NFC", text)          #    NFC so marks recompose)
+        if self.normalize_digits or self.digits_to_words:   # 2. digits -> ASCII
             text = text.translate(_DIGIT_TABLE)
-        if self.digits_to_words:                            # 4. digits -> words
+        if self.digits_to_words:                            # 3. digits -> words
             text = digits_to_urdu_words(text)               #    (before char maps,
                                                             #    so words get mapped too)
-        text = text.replace(_DECOMPOSED_YEH_HAMZA, "\u0626")
-        if self.map_confusables:                            # 5. Arabic -> Urdu
+        if self.map_confusables:                            # 4. Arabic -> Urdu
             text = text.translate(_CHAR_TABLE)
-        if self.merge_hamza_madda:                          # 5b. آ->ا, ئ->ی, ؤ->و
+        # 4b. compose hamza AFTER the confusable map, so Arabic and Urdu
+        # spellings agree (ه+ٔ -> ہ+ٔ -> ۂ; ى+ٔ -> ی+ٔ -> ئ)
+        text = text.replace(_DECOMPOSED_YEH_HAMZA, "\u0626")
+        text = unicodedata.normalize("NFC", text)
+        if self.merge_hamza_madda:                          # 5. آ->ا, ئ->ی, ؤ->و
             text = text.translate(_HAMZA_MADDA_TABLE)
         if self.strip_diacritics:                           # 6. strip harakat
             text = _DIAC_RE.sub("", text)
@@ -204,7 +228,7 @@ class UrduNormalizer:
             text = _LATIN_TOKEN_RE.sub(" ", text)
         if self.collapse_whitespace:                        # 9. collapse spaces
             text = _WS_RE.sub(" ", text).strip()
-        return text
+        return unicodedata.normalize("NFC", text)          # 10. final canonical form
 
 
 # Convenience singletons.

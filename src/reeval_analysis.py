@@ -98,7 +98,9 @@ def metric(d: dict, name: str, idx=None, mask=None) -> np.ndarray | float:
     estimate). mask: boolean (n,) subset applied before aggregation."""
     we, wl, ce, cl = d["we"], d["wl"], d["ce"], d["cl"]
     m = np.ones_like(we, bool) if mask is None else mask
-    utt = np.where(wl > 0, we / np.where(wl > 0, wl, 1), 0.0)
+    # empty reference: errors / max(ref_len, 1) (insertions still count), as
+    # in reeval_wws.score; main() excludes empty references in any case
+    utt = we / np.maximum(wl, 1)
     if idx is None:
         if name == "utt_wer":
             return 100 * utt[m].mean()

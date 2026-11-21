@@ -226,10 +226,14 @@ def build_conditions(chars: set[str], as_released_name: str) -> list[Condition]:
 # --------------------------------------------------------------------------- #
 
 def edit_counts(refs: list[str], hyps: list[str], unit: str) -> tuple[np.ndarray, np.ndarray]:
-    """Per-utterance (errors, reference length) at word or char level."""
+    """Per-utterance (errors, reference length) at word or char level.
+
+    Tokenisation: any run of Unicode whitespace (tabs, newlines, NBSP, ...)
+    separates words, as str.split() does; jiwer alone splits only on ' '."""
     errs, lens = np.zeros(len(refs)), np.zeros(len(refs))
     process = jiwer.process_words if unit == "word" else jiwer.process_characters
     for i, (r, h) in enumerate(zip(refs, hyps)):
+        r, h = " ".join(r.split()), " ".join(h.split())
         o = process(r, h)
         errs[i] = o.substitutions + o.deletions + o.insertions
         lens[i] = o.substitutions + o.deletions + o.hits
@@ -241,6 +245,12 @@ def bootstrap_indices(n: int, n_boot: int = N_BOOT, seed: int = SEED) -> np.ndar
 
 
 def ci(samples: np.ndarray) -> tuple[float, float]:
+    """95% percentile interval over the finite resamples. A resample that
+    contains no utterance of a small subset gives 0/0 = NaN; it is dropped
+    rather than turning the whole interval into NaN."""
+    samples = samples[np.isfinite(samples)]
+    if not len(samples):
+        return float("nan"), float("nan")
     lo, hi = np.percentile(samples, [2.5, 97.5])
     return float(lo), float(hi)
 
@@ -250,7 +260,8 @@ def score(word_err, word_len, char_err, char_len, mask, boot) -> dict:
     we, wl = word_err * mask, word_len * mask
     ce, cl = char_err * mask, char_len * mask
     with np.errstate(divide="ignore", invalid="ignore"):
-        utt = np.where(mask, word_err / np.where(word_len > 0, word_len, 1), 0.0)
+        # empty reference: errors / max(ref_len, 1), as in reeval_analysis.metric
+        utt = np.where(mask, word_err / np.maximum(word_len, 1), 0.0)
     n = mask.sum()
     res = {
         "n": int(n),
