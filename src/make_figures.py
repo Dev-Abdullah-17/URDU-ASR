@@ -111,8 +111,11 @@ def length_chart(table, buckets, condition, out, top_k=5):
             ymax = max(ymax, max(y))
             # small horizontal dodge so converging markers stay visible
             xd = [v + (i - (top_k - 1) / 2) * DODGE for v in x]
-            ax.plot(xd, y, color=SERIES[i], lw=2, marker=MARKERS[i], ms=6,
-                    markeredgecolor=SURFACE, markeredgewidth=1.2, label=m, zorder=3 + i)
+            # lines in one layer, all markers in a higher layer, so no line
+            # can cover another series' marker
+            ax.plot(xd, y, color=SERIES[i], lw=2, zorder=3)
+            ax.plot(xd, y, ls="none", color=SERIES[i], marker=MARKERS[i], ms=6,
+                    markeredgecolor=SURFACE, markeredgewidth=1.2, zorder=10 + i)
         ax.set_xticks(x)
         ax.set_xticklabels([f"{b.replace('<=', '≤')} words\nn = {n_utts[b]}" for b in order],
                            fontsize=8)
