@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# a push to a PR branch triggers both events; keep only the newest run per ref
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"   # requirements.lock is resolved for CPython 3.11 / Linux x86_64
+          cache: pip
+          cache-dependency-path: requirements.lock
+
+      # Fail if requirements.lock is stale. uv keeps the pins already in the
+      # output file, so this only differs when requirements.txt changed
+      # without recompiling the lock.
+      - name: Check requirements.lock matches requirements.txt
+        run: |
+          python -m pip install "uv==0.11.32"
+          uv pip compile requirements.txt --python-version 3.11 \
+            --python-platform x86_64-unknown-linux-gnu -o requirements.lock -q
+          git diff --exit-code requirements.lock
+
+      # Install the pinned lock exactly. torch, triton and the nvidia-*/cuda-*
+      # CUDA wheels are skipped: no test imports them and they are several GB.
+      # --no-deps keeps pip from pulling them back in via accelerate/peft;
+      # the lock already lists every other transitive dependency.
+      - name: Install pinned dependencies (without torch/CUDA wheels)
+        run: |
+          grep -vE '^(torch|triton|nvidia-|cuda-)' requirements.lock > ci-requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install --no-deps -r ci-requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q
