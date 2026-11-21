@@ -148,3 +148,43 @@ split`). The date and wall time come from the session in which it was run (the
   - Slope chart: two-line title, "... (Kendall's τ = 0.897)" over "as released~ (approximate reproduction of the published scoring)". Neither line is clipped or overlaps the column headers. 17 models appear on each side, with values and ranks the same as in the previous run.
   - Length chart: the one-line suptitle ends with "— as released~ (approximate reproduction of the published scoring)". A zoomed crop shows the closing parenthesis is fully inside the right edge (it ends about 80 px before the edge). The footnote is unchanged and not clipped. A zoomed crop of the finer split shows all markers, including the orange squares at 16-30 and 31-50. Nothing overlaps.
 - Warnings: none.
+
+## 2026-11-21T17:13:48Z — reeval_wws.py re-run after strip_disfluency_tags (N1-N8, hamza ablation)
+
+- Worktree / branch: `/home/user/urdu-asr` / `readme-review`
+- Commit: `011575ba071e694e61660ca7e32840bdd6e4cb2a` ("Add strip_disfluency_tags; apply it first in every N-condition"). The N1-N8 and N7+hamza_merge conditions now drop `#\S+` tokens before every other step. `raw` and `as_released~` are unchanged.
+- Tree state before run: clean (`git status --porcelain` empty).
+- Command (from repo root): `python3 src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results`
+- Exit status: 0; wall time: 27.4 s
+- Environment: Python 3.13.18; numpy 2.5.3, pandas 3.0.5, datasets 5.2.0, huggingface_hub 2.4.0, jiwer 4.0.0, scipy 1.18.1, matplotlib 3.11.2
+- Provenance (`results/reeval_meta.json`): WER-We-Stand commit `9dd7f4d0580a608e53942916a37d4d417328b1b6`; references `urdu-asr/csalt-voice`, revision `6f0c4fdeea94c77b4b64c4b88d5887e087566a5f` (same as before), fingerprint `83e8388afd07c2f4`, validation split (471). Paired bootstrap B=1000, seed 42. Script warning (expected): `--chars-json not given`, so the 44-char reference inventory stands in, giving the label `as_released~`.
+- Outputs: `results/reeval_table.{csv,md}`, `results/reeval_per_utt.csv`, `results/reeval_codeswitch_flags.csv` (byte-identical to the previous local copy), `results/reeval_meta.json` (only the N1 description changed), `results/csalt_voice_refs.json` (byte-identical, sha256 `dc184db5...0812649e`).
+- Sanity checks: the script asserts 471 x 17 alignment. reeval_table.csv has 1683 rows (3 subsets x 11 conditions x 3 metrics x 17). The `raw` and `as_released~` rows (153 each) are line-for-line identical to `HEAD:results/reeval_table.csv`. Value changes are limited to the four Seamless models: N1-N7+hamza have 36/153 rows changed each, and N8_latin_drop has 11 small (<=0.06) changes. No NaN in value/CI/rank/tau. The only Arabic-script characters in the table files are آ ا ئ ی ؤ و, in the N7+hamza_merge description.
+- Warnings: none beyond the chars-json notice.
+
+## 2026-11-21T17:14:20Z — reeval_analysis.py re-run after strip_disfluency_tags
+
+- Commit / tree: as above (run right after reeval_wws.py)
+- Command (from repo root): `python3 src/reeval_analysis.py --results-dir results`
+- Exit status: 0; wall time: 4.3 s
+- Provenance: inputs come from the run above (WWS `9dd7f4d0`, HF revision `6f0c4fde`); bootstrap B=1000, seed 42.
+- Outputs: `results/reeval_pairwise.{csv,md}` (288 rows, `family_size` 16), `results/reeval_length_buckets.{csv,md}` (238 rows), `results/reeval_cs_by_length.{csv,md}` (612 rows; standardised 8 x 17, `family_size` 17).
+- Sanity checks: the `as_released~` pairwise rows are identical to HEAD, and the `as_released~` length-bucket rows are unchanged. No NaN in delta/CI/p columns (pairwise, standardised cs rows, or cs rows where both arms are non-empty). `p_holm >= p_boot` holds. No Arabic-script characters in these tables.
+- Notable changes (N7_numwords only):
+  - The corpus_wer ranking reorders Seamless ranks 3-5.
+  - The whisper-large-v3 vs seamless-m4t-medium-ur adjacent pair is no longer Holm-rejected (p_holm 0.0320 -> 0.0879), so corpus_wer Holm rejections go from 6 to 5.
+  - For utt_wer, CI-excludes-0 goes from 6 to 7 (the seamless-v2-large-ur vs medium-ur CI is now [0.04, 2.54]), with no Holm change.
+  - For the spec standardised code-switch effect, seamless-m4t-v2-large-ur corpus_wer is now Holm-rejected (p_holm 0.1359 -> 0.0340).
+- Warnings: none.
+
+## 2026-11-21T17:14:24Z — make_figures.py re-run after strip_disfluency_tags
+
+- Commit / tree: as above
+- Command (from repo root): `python3 src/make_figures.py --results-dir results` (default `--condition as_released~`)
+- Exit status: 0; wall time: 3.6 s
+- Inputs: `results/reeval_table.csv` blob `8158d109938aa607a2f95e157cd411c0a1a5de43` and `results/reeval_length_buckets.csv` blob `675849ec53adbaf4e39bd6d25a9b92e8366d6f77`. Both differ from HEAD, but only in non-`as_released~` rows.
+- Outputs (both byte-identical to HEAD):
+  - `results/figures/rank_slope_utt_vs_corpus.png`: 1080x960 px, 224837 bytes, sha256 `6b2fcba98dfa6a532d5abf2c65adcb9b12f9da45214ea7c5529bd2084c984597`
+  - `results/figures/wer_by_length_top5.png`: 1440x630 px, 153463 bytes, sha256 `c50d70cff3b19cce83389ce2c71867f305e069969304e18722726d4622699bc1`
+- Sanity checks: I viewed both PNGs. Titles, headers and footnote are fully visible, and nothing overlaps or is clipped. The slope chart shows τ = 0.897 with 17 models per side.
+- Warnings: none.

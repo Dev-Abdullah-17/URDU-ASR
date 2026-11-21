@@ -153,9 +153,9 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | model | bucket | n_flagged | n_unflagged | flagged | unflagged | delta | ci_low | ci_high | ci_includes_0 | p_boot | p_holm | reject_holm_05 | n_valid_resamples | buckets_used |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | hf-seamless-m4t-medium | <=5 | 0 | 12 |  | 60.98 |  |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 6-15 | 3 | 100 | 20.0 | 34.03 | -14.03 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | >15 | 61 | 295 | 15.53 | 18.06 | -2.54 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | standardised | 61 | 295 | 15.53 | 18.06 | -2.54 | -6.01 | 1.48 | True | 0.1938 | 1.0 | False | 1000 | >15 |
+| hf-seamless-m4t-medium | 6-15 | 3 | 100 | 20.0 | 33.84 | -13.84 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | >15 | 61 | 295 | 15.1 | 17.69 | -2.59 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | standardised | 61 | 295 | 15.1 | 17.69 | -2.59 | -6.12 | 1.46 | True | 0.1858 | 1.0 | False | 1000 | >15 |
 | mms-1b-all | <=5 | 0 | 12 |  | 70.73 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 63.33 | 52.36 | 10.97 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 40.51 | 43.76 | -3.25 |  |  |  |  |  |  |  |  |
@@ -169,17 +169,17 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-300m-ur | >15 | 61 | 295 | 70.97 | 67.43 | 3.54 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | standardised | 61 | 295 | 70.97 | 67.43 | 3.54 | -1.43 | 7.9 | True | 0.1199 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-medium-ur | <=5 | 0 | 12 |  | 48.78 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 6-15 | 3 | 100 | 26.67 | 24.86 | 1.81 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | >15 | 61 | 295 | 15.23 | 18.41 | -3.18 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 15.23 | 18.41 | -3.18 | -6.6 | 0.39 | True | 0.0859 | 1.0 | False | 1000 | >15 |
+| seamless-m4t-medium-ur | 6-15 | 3 | 100 | 26.67 | 24.57 | 2.09 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | >15 | 61 | 295 | 15.03 | 18.13 | -3.1 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 15.03 | 18.13 | -3.1 | -6.48 | 0.5 | True | 0.0859 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-v2-large | <=5 | 0 | 12 |  | 43.9 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 6-15 | 3 | 100 | 23.33 | 24.29 | -0.96 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | >15 | 61 | 295 | 32.28 | 34.15 | -1.87 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 32.28 | 34.15 | -1.87 | -8.48 | 3.89 | True | 0.5774 | 1.0 | False | 1000 | >15 |
+| seamless-m4t-v2-large | 6-15 | 3 | 100 | 23.33 | 24.01 | -0.67 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | >15 | 61 | 295 | 32.12 | 34.07 | -1.95 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 32.12 | 34.07 | -1.95 | -8.66 | 3.76 | True | 0.5534 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 39.02 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 23.33 | 20.6 | 2.73 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | >15 | 61 | 295 | 15.0 | 19.47 | -4.48 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 15.0 | 19.47 | -4.48 | -7.4 | -1.45 | False | 0.008 | 0.1359 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 23.33 | 20.23 | 3.11 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | >15 | 61 | 295 | 14.43 | 19.22 | -4.79 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.43 | 19.22 | -4.79 | -7.67 | -1.8 | False | 0.002 | 0.034 | True | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 85.37 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 773.33 | 241.21 | 532.12 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 107.93 | 126.9 | -18.97 |  |  |  |  |  |  |  |  |
@@ -226,9 +226,9 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | model | bucket | n_flagged | n_unflagged | flagged | unflagged | delta | ci_low | ci_high | ci_includes_0 | p_boot | p_holm | reject_holm_05 | n_valid_resamples | buckets_used |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | hf-seamless-m4t-medium | <=5 | 0 | 12 |  | 44.71 |  |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 6-15 | 3 | 100 | 15.71 | 20.22 | -4.51 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | >15 | 61 | 295 | 9.23 | 10.81 | -1.59 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | standardised | 61 | 295 | 9.23 | 10.81 | -1.59 | -4.79 | 2.27 | True | 0.3596 | 1.0 | False | 1000 | >15 |
+| hf-seamless-m4t-medium | 6-15 | 3 | 100 | 15.71 | 20.13 | -4.42 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | >15 | 61 | 295 | 8.95 | 10.55 | -1.61 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | standardised | 61 | 295 | 8.95 | 10.55 | -1.61 | -4.86 | 2.27 | True | 0.3556 | 1.0 | False | 1000 | >15 |
 | mms-1b-all | <=5 | 0 | 12 |  | 38.24 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 30.71 | 24.89 | 5.82 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 17.06 | 19.42 | -2.35 |  |  |  |  |  |  |  |  |
@@ -242,17 +242,17 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-300m-ur | >15 | 61 | 295 | 29.08 | 28.05 | 1.03 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | standardised | 61 | 295 | 29.08 | 28.05 | 1.03 | -1.49 | 3.29 | True | 0.4076 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-medium-ur | <=5 | 0 | 12 |  | 31.76 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 6-15 | 3 | 100 | 16.43 | 13.58 | 2.85 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | >15 | 61 | 295 | 8.82 | 10.86 | -2.04 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 8.82 | 10.86 | -2.04 | -5.14 | 1.59 | True | 0.2278 | 1.0 | False | 1000 | >15 |
+| seamless-m4t-medium-ur | 6-15 | 3 | 100 | 16.43 | 13.38 | 3.05 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | >15 | 61 | 295 | 8.67 | 10.67 | -1.99 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 8.67 | 10.67 | -1.99 | -5.11 | 1.59 | True | 0.2378 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-v2-large | <=5 | 0 | 12 |  | 28.82 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 6-15 | 3 | 100 | 12.14 | 14.55 | -2.4 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | >15 | 61 | 295 | 22.76 | 23.75 | -0.99 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 22.76 | 23.75 | -0.99 | -5.89 | 3.32 | True | 0.7093 | 1.0 | False | 1000 | >15 |
+| seamless-m4t-v2-large | 6-15 | 3 | 100 | 12.14 | 14.46 | -2.31 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | >15 | 61 | 295 | 22.66 | 23.7 | -1.04 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 22.66 | 23.7 | -1.04 | -5.93 | 3.28 | True | 0.7033 | 1.0 | False | 1000 | >15 |
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 23.53 |  |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 16.43 | 10.95 | 5.47 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | >15 | 61 | 295 | 8.81 | 12.24 | -3.43 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.81 | 12.24 | -3.43 | -5.85 | -0.9 | False | 0.006 | 0.0899 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 16.43 | 10.68 | 5.74 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | >15 | 61 | 295 | 8.42 | 12.07 | -3.66 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.42 | 12.07 | -3.66 | -6.01 | -1.14 | False | 0.004 | 0.0679 | False | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 48.82 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 479.29 | 169.9 | 309.39 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 81.15 | 93.09 | -11.93 |  |  |  |  |  |  |  |  |
@@ -478,11 +478,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 
 | model | bucket | n_flagged | n_unflagged | flagged | unflagged | delta | ci_low | ci_high | ci_includes_0 | p_boot | p_holm | reject_holm_05 | n_valid_resamples | buckets_used |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| hf-seamless-m4t-medium | <=15 | 3 | 112 | 20.0 | 35.03 | -15.03 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 16-30 | 17 | 132 | 14.82 | 17.1 | -2.28 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 31-50 | 18 | 97 | 13.88 | 17.69 | -3.81 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | >50 | 26 | 66 | 16.32 | 19.03 | -2.71 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | standardised | 61 | 295 | 15.19 | 18.14 | -2.95 | -6.56 | 0.91 | True | 0.1479 | 1.0 | False | 1000 | 16-30+31-50+>50 |
+| hf-seamless-m4t-medium | <=15 | 3 | 112 | 20.0 | 34.85 | -14.85 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | 16-30 | 17 | 132 | 14.07 | 16.91 | -2.84 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | 31-50 | 18 | 97 | 13.74 | 17.03 | -3.28 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | >50 | 26 | 66 | 15.84 | 18.79 | -2.94 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | standardised | 61 | 295 | 14.75 | 17.78 | -3.03 | -6.61 | 0.76 | True | 0.1319 | 1.0 | False | 1000 | 16-30+31-50+>50 |
 | mms-1b-all | <=15 | 3 | 112 | 63.33 | 53.05 | 10.29 |  |  |  |  |  |  |  |  |
 | mms-1b-all | 16-30 | 17 | 132 | 41.96 | 43.7 | -1.74 |  |  |  |  |  |  |  |  |
 | mms-1b-all | 31-50 | 18 | 97 | 41.9 | 43.03 | -1.12 |  |  |  |  |  |  |  |  |
@@ -498,21 +498,21 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-300m-ur | 31-50 | 18 | 97 | 66.39 | 64.7 | 1.69 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >50 | 26 | 66 | 75.49 | 73.85 | 1.64 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | standardised | 61 | 295 | 68.42 | 67.97 | 0.46 | -4.1 | 4.66 | True | 0.8551 | 1.0 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-medium-ur | <=15 | 3 | 112 | 26.67 | 25.75 | 0.92 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 16-30 | 17 | 132 | 14.57 | 16.12 | -1.55 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 31-50 | 18 | 97 | 12.93 | 18.46 | -5.53 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | >50 | 26 | 66 | 16.27 | 19.93 | -3.66 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.81 | 18.55 | -3.74 | -7.47 | 0.04 | True | 0.0579 | 0.8112 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-v2-large | <=15 | 3 | 112 | 23.33 | 25.02 | -1.69 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 16-30 | 17 | 132 | 21.11 | 29.32 | -8.21 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 31-50 | 18 | 97 | 23.4 | 28.18 | -4.78 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | >50 | 26 | 66 | 38.12 | 42.48 | -4.36 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 29.38 | 34.8 | -5.42 | -11.16 | -0.23 | False | 0.044 | 0.6593 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 23.33 | 21.29 | 2.04 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 14.32 | 14.28 | 0.04 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 15.65 | 18.65 | -3.0 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | >50 | 26 | 66 | 14.89 | 23.71 | -8.83 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.99 | 19.84 | -4.85 | -7.99 | -1.7 | False | 0.006 | 0.1019 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-medium-ur | <=15 | 3 | 112 | 26.67 | 25.48 | 1.19 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | 16-30 | 17 | 132 | 14.32 | 15.76 | -1.44 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | 31-50 | 18 | 97 | 12.93 | 18.14 | -5.22 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | >50 | 26 | 66 | 16.0 | 19.73 | -3.72 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.63 | 18.27 | -3.64 | -7.28 | 0.13 | True | 0.0679 | 0.951 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | <=15 | 3 | 112 | 23.33 | 24.75 | -1.42 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | 16-30 | 17 | 132 | 21.11 | 29.22 | -8.11 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | 31-50 | 18 | 97 | 23.13 | 28.05 | -4.92 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | >50 | 26 | 66 | 37.96 | 42.45 | -4.5 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 29.23 | 34.73 | -5.5 | -11.33 | -0.28 | False | 0.044 | 0.6593 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 23.33 | 20.93 | 2.41 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 14.07 | 14.08 | -0.01 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 15.24 | 18.19 | -2.96 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | >50 | 26 | 66 | 14.19 | 23.6 | -9.41 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.49 | 19.6 | -5.11 | -8.16 | -1.91 | False | 0.006 | 0.1019 | False | 1000 | 16-30+31-50+>50 |
 | whisper-base | <=15 | 3 | 112 | 773.33 | 235.4 | 537.94 |  |  |  |  |  |  |  |  |
 | whisper-base | 16-30 | 17 | 132 | 143.97 | 152.63 | -8.66 |  |  |  |  |  |  |  |  |
 | whisper-base | 31-50 | 18 | 97 | 130.88 | 129.8 | 1.08 |  |  |  |  |  |  |  |  |
@@ -568,11 +568,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 
 | model | bucket | n_flagged | n_unflagged | flagged | unflagged | delta | ci_low | ci_high | ci_includes_0 | p_boot | p_holm | reject_holm_05 | n_valid_resamples | buckets_used |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| hf-seamless-m4t-medium | <=15 | 3 | 112 | 15.71 | 21.12 | -5.41 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 16-30 | 17 | 132 | 8.04 | 9.24 | -1.2 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | 31-50 | 18 | 97 | 6.72 | 9.58 | -2.86 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | >50 | 26 | 66 | 10.45 | 12.92 | -2.47 |  |  |  |  |  |  |  |  |
-| hf-seamless-m4t-medium | standardised | 61 | 295 | 8.7 | 10.98 | -2.29 | -5.3 | 0.99 | True | 0.1638 | 1.0 | False | 1000 | 16-30+31-50+>50 |
+| hf-seamless-m4t-medium | <=15 | 3 | 112 | 15.71 | 21.04 | -5.32 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | 16-30 | 17 | 132 | 7.51 | 9.08 | -1.57 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | 31-50 | 18 | 97 | 6.62 | 9.12 | -2.5 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | >50 | 26 | 66 | 10.15 | 12.76 | -2.61 |  |  |  |  |  |  |  |  |
+| hf-seamless-m4t-medium | standardised | 61 | 295 | 8.4 | 10.73 | -2.32 | -5.36 | 1.05 | True | 0.1558 | 1.0 | False | 1000 | 16-30+31-50+>50 |
 | mms-1b-all | <=15 | 3 | 112 | 30.71 | 25.38 | 5.33 |  |  |  |  |  |  |  |  |
 | mms-1b-all | 16-30 | 17 | 132 | 19.93 | 19.85 | 0.08 |  |  |  |  |  |  |  |  |
 | mms-1b-all | 31-50 | 18 | 97 | 17.01 | 18.9 | -1.89 |  |  |  |  |  |  |  |  |
@@ -588,21 +588,21 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-300m-ur | 31-50 | 18 | 97 | 27.33 | 26.36 | 0.97 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >50 | 26 | 66 | 30.52 | 31.22 | -0.7 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | standardised | 61 | 295 | 28.3 | 28.31 | -0.0 | -2.63 | 2.53 | True | 0.995 | 1.0 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-medium-ur | <=15 | 3 | 112 | 16.43 | 14.25 | 2.18 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 16-30 | 17 | 132 | 8.52 | 8.77 | -0.26 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | 31-50 | 18 | 97 | 5.79 | 10.26 | -4.47 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | >50 | 26 | 66 | 10.05 | 12.77 | -2.71 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 8.34 | 11.02 | -2.68 | -5.59 | 0.53 | True | 0.1099 | 1.0 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-v2-large | <=15 | 3 | 112 | 12.14 | 15.07 | -2.93 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 16-30 | 17 | 132 | 13.48 | 19.55 | -6.07 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | 31-50 | 18 | 97 | 14.92 | 18.61 | -3.69 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | >50 | 26 | 66 | 27.76 | 30.95 | -3.18 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 20.28 | 24.32 | -4.04 | -8.33 | -0.24 | False | 0.044 | 0.6154 | False | 1000 | 16-30+31-50+>50 |
-| seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 16.43 | 11.42 | 5.01 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 7.39 | 8.63 | -1.24 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 7.91 | 10.9 | -2.99 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | >50 | 26 | 66 | 9.45 | 15.8 | -6.35 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.47 | 12.53 | -4.06 | -6.46 | -1.6 | False | 0.002 | 0.034 | True | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-medium-ur | <=15 | 3 | 112 | 16.43 | 14.05 | 2.37 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | 16-30 | 17 | 132 | 8.34 | 8.51 | -0.17 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | 31-50 | 18 | 97 | 5.79 | 10.06 | -4.27 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | >50 | 26 | 66 | 9.87 | 12.64 | -2.78 |  |  |  |  |  |  |  |  |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 8.21 | 10.83 | -2.62 | -5.6 | 0.58 | True | 0.1199 | 1.0 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | <=15 | 3 | 112 | 12.14 | 14.98 | -2.84 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | 16-30 | 17 | 132 | 13.48 | 19.48 | -6.0 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | 31-50 | 18 | 97 | 14.73 | 18.51 | -3.78 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | >50 | 26 | 66 | 27.68 | 30.95 | -3.27 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 20.18 | 24.27 | -4.09 | -8.37 | -0.27 | False | 0.042 | 0.5874 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 16.43 | 11.16 | 5.27 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 7.21 | 8.49 | -1.27 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 7.68 | 10.61 | -2.92 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | >50 | 26 | 66 | 8.95 | 15.74 | -6.78 |  |  |  |  |  |  |  |  |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.14 | 12.38 | -4.24 | -6.59 | -1.72 | False | 0.002 | 0.034 | True | 1000 | 16-30+31-50+>50 |
 | whisper-base | <=15 | 3 | 112 | 479.29 | 165.45 | 313.84 |  |  |  |  |  |  |  |  |
 | whisper-base | 16-30 | 17 | 132 | 136.13 | 117.41 | 18.72 |  |  |  |  |  |  |  |  |
 | whisper-base | 31-50 | 18 | 97 | 99.87 | 92.49 | 7.38 |  |  |  |  |  |  |  |  |
