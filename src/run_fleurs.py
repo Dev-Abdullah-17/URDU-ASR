@@ -31,6 +31,14 @@ both vocabularies are Perso-Arabic script. ``seamless`` is accepted as an alias
 of ``seamlessm4t``. Decoding is deterministic: greedy (num_beams=1, do_sample=False)
 unless --num-beams; CTC (MMS) is argmax.
 
+Status: whisper smoke-tested (openai/whisper-tiny, CPU); mms (facebook/mms-1b-all)
+and seamlessm4t (facebook/hf-seamless-m4t-medium, SeamlessM4TForSpeechToText)
+smoke-tested on 3 utterances per config; the v2 path (SeamlessM4Tv2ForSpeechToText,
+chosen when "v2" is in the model id) is untested. SeamlessM4T's tokenizer needs
+``sentencepiece`` (and ``protobuf``), which are not in requirements.txt:
+``pip install sentencepiece protobuf``. The WWS fine-tuned seamless checkpoints
+(seamless_communication / fairseq2) are out of scope.
+
 FLEURS loading
 --------------
 ``google/fleurs`` used to be a loading-script dataset; datasets>=4 no longer runs
