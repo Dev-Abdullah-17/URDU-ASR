@@ -114,6 +114,49 @@ def metric(d: dict, name: str, idx=None, mask=None) -> np.ndarray | float:
         return 100 * (ce[idx] * mm).sum(1) / (cl[idx] * mm).sum(1)
 
 
+ALPHA = 0.05
+
+
+def boot_p_two_sided(diff: np.ndarray) -> float:
+    """Two-sided bootstrap p-value for H0: delta = 0, from the resampled
+    differences: 2 * min(#(d<=0)+1, #(d>=0)+1) / (B+1), capped at 1. The +1
+    avoids p = 0; with B = 1000 the smallest attainable p is 2/1001."""
+    d = diff[np.isfinite(diff)]
+    b = len(d)
+    lo, hi = (d <= 0).sum() + 1, (d >= 0).sum() + 1
+    return float(min(1.0, 2 * min(lo, hi) / (b + 1)))
+
+
+def holm(pvals: list[float]) -> list[float]:
+    """Holm-Bonferroni adjusted p-values (step-down, monotone, capped at 1)."""
+    m = len(pvals)
+    order = sorted(range(m), key=lambda i: pvals[i])
+    adj, running = [0.0] * m, 0.0
+    for k, i in enumerate(order):
+        running = max(running, min(1.0, (m - k) * pvals[i]))
+        adj[i] = running
+    return adj
+
+
+def add_holm(rows: list[dict], family_keys: tuple[str, ...]) -> None:
+    """Add p_holm / reject_holm_05 in place; one family per distinct value of
+    family_keys among rows that carry a p_boot."""
+    fams = defaultdict(list)
+    for r in rows:
+        if r.get("p_boot", "") != "":
+            fams[tuple(r[k] for k in family_keys)].append(r)
+    for r in rows:
+        r.setdefault("family_size", "")
+        r.setdefault("p_holm", "")
+        r.setdefault("reject_holm_05", "")
+    for fam in fams.values():
+        adj = holm([r["p_boot"] for r in fam])
+        for r, a in zip(fam, adj):
+            r["family_size"] = len(fam)
+            r["p_holm"] = round(a, 4)
+            r["reject_holm_05"] = a < ALPHA
+
+
 def pct_ci(x: np.ndarray) -> tuple[float, float]:
     """95% percentile CI over finite resamples (a resample can leave a small
     subset empty -> NaN; callers report how many resamples were usable)."""
@@ -152,7 +195,10 @@ def pairwise(data, boot) -> list[dict]:
                         "delta": round(pb - pa, 2), "ci_low": round(lo, 2),
                         "ci_high": round(hi, 2), "ci_includes_0": lo <= 0 <= hi,
                         "p_boot_delta_le_0": round(float((diff <= 0).mean()), 3),
+                        "p_boot": round(boot_p_two_sided(diff), 4),
                     })
+    # one family = the 16 adjacent-pair tests of one metric within one ranking
+    add_holm(out, ("condition", "ranking", "metric"))
     return out
 
 
@@ -219,7 +265,7 @@ def cs_by_length(data, length, flags, boot) -> list[dict]:
                             "delta": round(metric(d, met, mask=f) - metric(d, met, mask=u), 2)
                             if both else "",
                             "ci_low": "", "ci_high": "", "ci_includes_0": "",
-                            "n_valid_resamples": "", "buckets_used": "",
+                            "n_valid_resamples": "", "buckets_used": "", "p_boot": "",
                         })
                     sf = standardised(d, met, masks, weights, flags)
                     su = standardised(d, met, masks, weights, ~flags)
@@ -236,7 +282,11 @@ def cs_by_length(data, length, flags, boot) -> list[dict]:
                         "ci_high": round(hi, 2), "ci_includes_0": lo <= 0 <= hi,
                         "n_valid_resamples": int(np.isfinite(diff).sum()),
                         "buckets_used": "+".join(used),
+                        "p_boot": round(boot_p_two_sided(diff), 4),
                     })
+    # one family = the 17 per-model standardised tests of one metric within one
+    # (bucket scheme, condition); per-bucket descriptive rows are not tested
+    add_holm(out, ("scheme", "condition", "metric"))
     return out
 
 
@@ -263,9 +313,14 @@ def write_pairwise_md(path, rows):
          f"delta = lower-ranked minus higher-ranked model (percentage points); "
          f"95% percentile CI over {N_BOOT} paired resamples of utterances (seed {SEED}). "
          "`p_boot_delta_le_0` = share of resamples where the lower-ranked model "
-         "is not worse.", ""]
+         "is not worse. `p_boot` = two-sided bootstrap p-value "
+         "(2·min(#Δ≤0+1, #Δ≥0+1)/(B+1)); `p_holm` = Holm–Bonferroni adjusted, "
+         "one family per (condition, ranking, metric) = the 16 adjacent pairs; "
+         f"`reject_holm_05` = p_holm < {ALPHA}. With B = 1000 the smallest p_boot "
+         "is 0.002.", ""]
     cols = ["rank_upper", "model_upper", "model_lower", "metric", "value_upper",
-            "value_lower", "delta", "ci_low", "ci_high", "ci_includes_0", "p_boot_delta_le_0"]
+            "value_lower", "delta", "ci_low", "ci_high", "ci_includes_0", "p_boot",
+            "p_holm", "reject_holm_05"]
     for c in CONDITIONS:
         for rk in METRICS:
             sel = [r for r in rows if r["condition"] == c and r["ranking"] == rk]
@@ -298,9 +353,13 @@ def write_cs_md(path, rows):
          "corpus metric by the pooled word share of the bucket, using only buckets "
          f"where both groups have >= {MIN_CELL} utterances (`buckets_used`), with a "
          f"{N_BOOT}-resample bootstrap CI (seed {SEED}) of the difference; resamples "
-         "that leave a cell empty are dropped (`n_valid_resamples`).", ""]
+         "that leave a cell empty are dropped (`n_valid_resamples`). For the "
+         "standardised rows, `p_boot` is the two-sided bootstrap p-value and "
+         "`p_holm` the Holm–Bonferroni adjustment over the 17 models (one family "
+         f"per scheme × condition × metric); `reject_holm_05` = p_holm < {ALPHA}.", ""]
     cols = ["model", "bucket", "n_flagged", "n_unflagged", "flagged", "unflagged",
-            "delta", "ci_low", "ci_high", "ci_includes_0", "n_valid_resamples", "buckets_used"]
+            "delta", "ci_low", "ci_high", "ci_includes_0", "p_boot", "p_holm",
+            "reject_holm_05", "n_valid_resamples", "buckets_used"]
     for scheme in SCHEMES:
         for c in CONDITIONS:
             for met in ("corpus_wer", "corpus_cer"):
