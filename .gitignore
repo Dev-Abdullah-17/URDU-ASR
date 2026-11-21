@@ -22,6 +22,7 @@ results/*
 !results/reeval_cs_by_length.csv
 !results/reeval_cs_by_length.md
 !results/RUNS.md
+!results/reeval_tag_counts.csv
 !results/figures/
 results/figures/*
 !results/figures/*.png
