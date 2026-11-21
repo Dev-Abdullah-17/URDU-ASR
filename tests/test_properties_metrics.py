@@ -99,7 +99,7 @@ def test_as_released_leaves_reference_raw_but_cleans_hypothesis():
 
 def test_normalizer_steps_are_cumulative():
     conds = {c.name: c.ref_fn for c in rw.build_conditions(set(), "x")}
-    fields = ["map_confusables", "merge_hamza_madda", "strip_diacritics",
+    fields = ["strip_disfluency_tags", "map_confusables", "merge_hamza_madda", "strip_diacritics",
               "normalize_digits", "digits_to_words", "remove_punct", "lower_latin",
               "latin_tokens", "collapse_whitespace"]
     prev = None
@@ -115,6 +115,13 @@ def test_normalizer_steps_are_cumulative():
            {f: getattr(n7, f) for f in fields if f != "merge_hamza_madda"}
     assert conds["N8_latin_drop"].latin_tokens == "drop"
     assert conds["N7_numwords"].latin_tokens == "keep"
+    # tag removal is part of N1 and constant across every N-condition (so it never
+    # shows up in a step's diff above); raw / as_released do not use UrduNormalizer
+    for name, f in conds.items():
+        if name.startswith("N"):
+            assert isinstance(f, UrduNormalizer) and f.strip_disfluency_tags, name
+        else:
+            assert not isinstance(f, UrduNormalizer), name
 
 
 @FAST
