@@ -188,3 +188,20 @@ split`). The date and wall time come from the session in which it was run (the
   - `results/figures/wer_by_length_top5.png`: 1440x630 px, 153463 bytes, sha256 `c50d70cff3b19cce83389ce2c71867f305e069969304e18722726d4622699bc1`
 - Sanity checks: I viewed both PNGs. Titles, headers and footnote are fully visible, and nothing overlaps or is clipped. The slope chart shows τ = 0.897 with 17 models per side.
 - Warnings: none.
+
+## 2026-11-21T17:23:54Z — count_disfluency_tags.py (per-model tag / Latin-token counts)
+
+- Commit / tree: `2ae73072325c038963890e098cc25a3f42efc797` (branch `readme-review`). The tree was dirty only in `tests/test_properties_metrics.py` and `tests/test_properties_normalize.py`, which another agent is editing. Those files are not inputs to this script.
+- Environment: Python 3.13.18
+- Command (from repo root): `python3 src/count_disfluency_tags.py --wws-dir external/WER-We-Stand --out results/reeval_tag_counts.csv`
+- Exit status: 0; wall time: 0.29 s
+- Provenance: WWS commit `9dd7f4d0580a608e53942916a37d4d417328b1b6` (from `git -C external/WER-We-Stand rev-parse HEAD`; matches `reeval_meta.json`). The script reads only model hypotheses, not references. There is no randomness, so no seed is used.
+- Output: `results/reeval_tag_counts.csv` (18 rows: 17 models + TOTAL), sha256 `1ab2a2ccec73e2b2df180ffd17ff9a8d165295e3ab44245f56e17bbbefe35867`. It is whitelisted in `.gitignore`.
+- Sanity checks (all pass):
+  - There are 17 model rows plus TOTAL, and every model row has n_utts 471 (TOTAL is 8007 = 17 x 471).
+  - Every TOTAL column equals the sum over the model rows.
+  - tag_tokens is nonzero only for the four Seamless models.
+  - tags_latin_body + tags_arabic_body + tags_other_body == tag_tokens, and latin_tokens_tag + latin_tokens_non_tag == latin_tokens, on every row.
+  - The file is pure ASCII: no Urdu/Arabic-script characters and no NaN.
+- TOTAL: tag_tokens 204, utts_with_tag 141, tags_latin_body 197, tags_arabic_body 7, tags_other_body 0, latin_tokens 247, latin_tokens_tag 197, latin_tokens_non_tag 50.
+- Warnings: none. Model rows are in the order the script reads them, not alphabetical.

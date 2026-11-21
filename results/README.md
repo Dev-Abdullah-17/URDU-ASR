@@ -18,6 +18,7 @@ set `urdu-asr/csalt-voice`.
 | `reeval_cs_by_length.{csv,md}` | yes | code-switch flag vs length (finding 3) |
 | `figures/*.png` | yes | figures built from the committed tables (`src/make_figures.py`) |
 | `RUNS.md` | yes | run log: commit, command, provenance, outputs (no reference text) |
+| `reeval_tag_counts.csv` | yes | per-model counts of `#` tags and Latin tokens in the released hypotheses (`src/count_disfluency_tags.py`) |
 
 ## Reproduce
 
@@ -35,6 +36,10 @@ retrospectively in `RUNS.md`). Provenance of the committed tables:
   As of 2026-11-20 this was the only dataset in the `urdu-asr` org (Hugging
   Face API `GET /api/datasets?author=urdu-asr`, queried that day). It has a single `validation`
   split with 471 rows.
+- Code: the N-condition tables depend on commit `011575b`, which added
+  `strip_disfluency_tags` to every N-condition. The "before" values in the
+  disfluency section come from the tables at the preceding commit (`c360136`);
+  see the `RUNS.md` record dated 2026-11-21T17:13.
 - Bootstrap: 1000 resamples of utterances, seed 42. The same resampled index sets
   are used for every model and condition (paired).
 
@@ -119,7 +124,7 @@ All numbers are % over all 471 utterances unless a subset is named. Full tables 
 
 **Utterance-averaged WER (the paper's metric):**
 
-- `raw` vs `as_released~`: differs by 0.00 (mms-1b-all) to +2.99 (whisper-medium) points.
+- `raw` vs `as_released~`: differs by 0.00 (mms-1b-all, mms-300m-ur) to +2.99 (whisper-medium) points.
 - `N7_numwords` vs `as_released~`: differs by −0.11 (whisper-tiny) to +0.14
   (whisper-large-v3) points.
 - Kendall's τ vs the as-released ranking is 0.971 for `raw` and `N1_unicode`,
@@ -137,7 +142,8 @@ All numbers are % over all 471 utterances unless a subset is named. Full tables 
 
 **Disfluency tags.** The four Seamless models mark disfluencies with
 `#`-prefixed tags (204 tags in total); no Whisper or MMS output contains `#`.
-Utterances with a tag:
+All counts in this section are in `reeval_tag_counts.csv`. Utterances with a
+tag:
 
 | model | utterances with a tag |
 |---|---|
@@ -146,19 +152,23 @@ Utterances with a tag:
 | seamless-m4t-medium-ur | 35 |
 | seamless-m4t-v2-large | 19 |
 
-The paper (§4, p. 4) continues after the sentence quoted below: *"We noticed
+The paper (§4, p. 4) continues after the sentence quoted in "Normalization:
+paper text and released code" above: *"We noticed
 that Whisper and MMS models have built-in disfluency filtering and perform this
 task effectively. However, Seamless models output disfluencies marked with a #
 (e.g., #um), which we removed using regex during preprocessing."*
 
 Every N-condition therefore starts by dropping `#\S+` tokens
 (`strip_disfluency_tags`), on both sides; the references contain no `#`. This
-removes all 204 tags, including the 7 with Arabic-script bodies.
+removes all 204 tags, including the 7 with Arabic-script bodies. Every
+`#`-prefixed token is dropped, whatever its body. That is a choice, not a fact
+about the outputs: at least one Arabic-script tag body looks like a lexical
+word, not a filler like um or ah.
 
 - `raw` keeps the tags. Each one adds up to one word error (an insertion or,
   depending on alignment, a substitution).
 - `as_released~` drops `#` and Latin tag bodies through its character filter.
-  The 7 Arabic-script bodies survive there (see the code quote below).
+  The 7 Arabic-script bodies survive there (see the code quote above).
 
 Effect of adding the step, as N7 corpus WER before → after (all other models
 unchanged):
@@ -170,9 +180,10 @@ unchanged):
 | seamless-m4t-medium-ur | 18.33 | 18.06 | −0.27 | 3 → 3 |
 | seamless-m4t-v2-large | 33.11 | 33.00 | −0.11 | 8 → 8 |
 
-The rank 4/5 swap is a 0.01-point difference (18.41 vs 18.42). The Seamless
-N8 values also moved by up to 0.06, because the Arabic-script tags are now
-removed too.
+The rank 4/5 swap is a 0.01-point difference (18.41 vs 18.42): paired
+difference +0.01 [−1.45, 1.43], p_holm 1.0. The Seamless N8 values also moved
+slightly (corpus WER ≤ 0.02, utterance-averaged WER ≤ 0.06), because the
+Arabic-script tags are now removed too.
 
 Of the 247 Latin tokens in all hypotheses, 197 are tag bodies and 50 are not.
 The non-tag tokens come mostly from the non-fine-tuned Whisper models
@@ -212,7 +223,8 @@ The old Latin-letter heuristic flags 0 of 471 references. The extended detector
 `N7_numwords`:
 
 - Corpus WER on the 64 flagged utterances is lower than on the 407 others for
-  15 of 17 models.
+  15 of 17 models (not length-controlled: flagged utterances are longer; see
+  finding 3).
 - The exceptions are mms-300m-ur (71.06 vs 67.45) and whisper-tiny-ur (65.41 vs
   59.28).
 
@@ -298,8 +310,8 @@ metric:
 | corpus WER | 7 of 16 | 5 of 16 |
 | corpus CER | 7 of 16 | 6 of 16 |
 
-Pairs whose CI excludes 0 but that Holm does not reject, all with
-p_holm < 0.1:
+Of the pairs whose CI excludes 0 but that Holm does not reject, those with
+p_holm < 0.1 are (the others have p_holm 0.13–0.50; see `reeval_pairwise.csv`):
 
 | pair | ranking (condition) | p_boot | p_holm |
 |---|---|---|---|
@@ -432,9 +444,18 @@ surviving tests are for seamless-m4t-v2-large-ur:
 | corpus CER | fine | both | −4.24 [−6.59, −1.72] (N7) | 0.002 | 0.034 |
 | corpus WER | requested (>15 only) | N7_numwords | −4.79 [−7.67, −1.80] | 0.002 | 0.034 |
 
-No other corpus WER test survives in either scheme or condition. The requested
-scheme uses a single bucket, so the corpus-WER survivor is not
-length-standardised (see Method).
+No other corpus WER test survives in either scheme or condition.
+
+The corpus-WER survivor is fragile:
+- It holds only under `N7_numwords`. Under `as_released~` the same test has
+  p_holm 0.10, and in the fine scheme p_holm is 0.10 in both conditions.
+- It crossed the threshold only when disfluency-tag removal was added: p_holm
+  went from 0.136 to 0.034. Tags occur only in Seamless output, and how they
+  fall between flagged and unflagged utterances is not controlled.
+- p_boot = 0.002 is the bootstrap floor, so p_holm = 17 × 0.002 = 0.034 is the
+  smallest value the test can produce; more resamples could change it.
+- The requested scheme uses a single bucket, so it is not length-standardised
+  (see Method).
 
 For whisper-large-v3-ur, the standardised corpus WER is 14.53 (flagged) vs
 16.43 (unflagged), a difference of −1.90 [−4.97, 1.52].
@@ -442,8 +463,9 @@ For whisper-large-v3-ur, the standardised corpus WER is 14.53 (flagged) vs
 After standardising over length buckets, flagged utterances have lower
 point-estimate WER for 14 of 17 models (fine scheme). The difference is
 nominally significant for only 3 models, and for none after Holm. With the
-requested scheme, one model (seamless-m4t-v2-large-ur) survives Holm, from a
-single-bucket comparison. Length within a bucket is not
+requested scheme under `N7_numwords` only, one model (seamless-m4t-v2-large-ur)
+survives Holm at the resolution floor, from a single-bucket comparison that is
+sensitive to normalization (see above). Length within a bucket is not
 controlled, and the 17 models are scored on the same utterances, so the 14/17
 sign count is not 17 independent replications. This analysis does not
 establish that flagged utterances are easier to recognise.

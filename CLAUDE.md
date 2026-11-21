@@ -40,7 +40,7 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
    Exceptions (whitelisted in `.gitignore`), because they contain no reference text:
    `results/README.md`, `results/RUNS.md` (run log),
    `results/reeval_{table,pairwise,length_buckets,cs_by_length}.{csv,md}`
-   and `results/figures/*.png` (aggregate numbers only) and `data/codeswitch_labels_template.csv` (utterance
+   `results/reeval_tag_counts.csv` and `results/figures/*.png` (aggregate numbers only) and `data/codeswitch_labels_template.csv` (utterance
    ids + labels only). Anything containing csalt-voice reference text —
    `results/csalt_voice_refs.json`, `results/reeval_per_utt.csv`,
    `results/reeval_codeswitch_flags.csv` — stays local: that dataset is not ours
