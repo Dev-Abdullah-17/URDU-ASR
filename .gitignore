@@ -21,6 +21,7 @@ results/*
 !results/reeval_length_buckets.md
 !results/reeval_cs_by_length.csv
 !results/reeval_cs_by_length.md
+!results/RUNS.md
 !data/codeswitch_labels_template.csv
 wandb/
 *.wav
