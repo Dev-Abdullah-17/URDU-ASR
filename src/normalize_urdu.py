@@ -141,6 +141,10 @@ _ZERO_WIDTH = "".join(["\u200B", "\u200C", "\u200D", "\u200E", "\u200F", "\uFEFF
 # Punctuation (Urdu + ASCII) removed for scoring.
 _PUNCT = r"""!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~۔،؟؛«»…“”‘’"""
 
+# Disfluency tags as emitted by Seamless-M4T (e.g. "#um", "#آہ"): a "#" followed
+# by non-space characters. Removed as a whole token by strip_disfluency_tags.
+_DISFLUENCY_TAG_RE = re.compile(r"#\S+")
+
 _CHAR_TABLE = str.maketrans(_CHAR_MAP)
 _DIGIT_TABLE = str.maketrans(_DIGIT_MAP)
 _HAMZA_MADDA_TABLE = str.maketrans(_HAMZA_MADDA_MAP)
@@ -156,6 +160,7 @@ _LATIN_TOKEN_RE = re.compile(r"\S*[A-Za-z]\S*")
 
 @dataclass
 class UrduNormalizer:
+    strip_disfluency_tags: bool = False  # drop "#\S+" tags (Seamless disfluencies) first
     map_confusables: bool = True
     merge_hamza_madda: bool = False  # آ->ا, ئ->ی, ؤ->و (lossy; off by default)
     strip_diacritics: bool = True
@@ -174,6 +179,8 @@ class UrduNormalizer:
     def __call__(self, text: str) -> str:
         if not text:
             return ""
+        if self.strip_disfluency_tags:                      # 0. drop "#um"-style tags
+            text = _DISFLUENCY_TAG_RE.sub(" ", text)
         text = unicodedata.normalize("NFC", text)          # 1. canonical compose
         text = _ZW_RE.sub("", text)                         # 2. drop zero-width
         if self.normalize_digits or self.digits_to_words:   # 3. digits -> ASCII

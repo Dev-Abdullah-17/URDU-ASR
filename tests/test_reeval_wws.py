@@ -113,3 +113,13 @@ def test_label_template_sample_is_deterministic():
     a = sample_ids()
     assert a == sample_ids() and len(a) == 100 and len(set(a)) == 100
     assert a == sorted(a) and 0 <= a[0] and a[-1] < 471
+
+
+def test_every_n_condition_strips_disfluency_tags_raw_does_not():
+    conds = rw.build_conditions(set("abc #"), "as_released~")
+    h = "#um کل ملتے ہیں"
+    for c in conds:
+        if c.name.startswith("N"):
+            assert "um" not in c.hyp_fn(h) and c.hyp_fn(h) == c.ref_fn(h), c.name
+    raw = next(c for c in conds if c.name == "raw")
+    assert raw.hyp_fn(h) == h and raw.ref_fn(h) == h
