@@ -95,9 +95,28 @@ def test_boot_p_two_sided():
 
 
 def test_add_holm_families_are_separate():
-    rows = [{"f": "a", "p_boot": 0.01}, {"f": "a", "p_boot": 0.02},
-            {"f": "b", "p_boot": 0.01}, {"f": "b", "p_boot": ""}]
+    rows = [{"f": "a", "p_boot": 0.01, "_p": 0.01}, {"f": "a", "p_boot": 0.02, "_p": 0.02},
+            {"f": "b", "p_boot": 0.01, "_p": 0.01}, {"f": "b", "p_boot": ""}]
     ra.add_holm(rows, ("f",))
     assert [r["family_size"] for r in rows] == [2, 2, 1, ""]
     assert rows[0]["p_holm"] == pytest.approx(0.02) and rows[2]["p_holm"] == pytest.approx(0.01)
     assert rows[3]["p_holm"] == ""
+
+
+def test_add_holm_uses_unrounded_p():
+    # exact p = 10/1001 ~ 0.00999 -> Holm (m=5) 0.04995 < 0.05 (reject);
+    # rounding p to 0.0100 first would give 0.0500 (no reject)
+    p = 10 / 1001
+    rows = [{"f": "a", "p_boot": round(p, 4), "_p": p}] + \
+           [{"f": "a", "p_boot": 0.9, "_p": 0.9} for _ in range(4)]
+    ra.add_holm(rows, ("f",))
+    assert rows[0]["reject_holm_05"] is True
+    assert all("_p" not in r and "_p_exact" not in r for r in rows)
+
+
+def test_add_holm_excludes_untestable():
+    rows = [{"f": "a", "p_boot": 0.01, "_p": 0.01},
+            {"f": "a", "p_boot": float("nan"), "_p": float("nan")}]
+    ra.add_holm(rows, ("f",))
+    assert rows[0]["family_size"] == 1 and rows[1]["p_holm"] == "" and rows[1]["p_boot"] == ""
+    assert np.isnan(ra.boot_p_two_sided(np.full(10, np.nan)))

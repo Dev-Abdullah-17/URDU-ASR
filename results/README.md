@@ -237,6 +237,10 @@ whisper-medium. For whisper-large-v3 vs whisper-large-v3-ur, p_boot is
 
 *Limitations:*
 - The test covers adjacent pairs only. A chain like A≈B, B≈C does not mean A≈C.
+- Adjacent pairs are chosen by the point-estimate ranking of the same data they
+  are then tested on, so on the ranking's own metric the observed difference is
+  ≥ 0 by construction. The two-sided bootstrap test is still valid, but the
+  pairs are not a pre-registered set.
 - `p_boot_delta_le_0` is the one-sided share of resamples; the test statistic is
   the two-sided `p_boot`. Both use the same utterance-level bootstrap, so the
   independence caveat above applies to the adjusted p-values too.

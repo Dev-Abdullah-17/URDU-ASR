@@ -123,6 +123,8 @@ def boot_p_two_sided(diff: np.ndarray) -> float:
     avoids p = 0; with B = 1000 the smallest attainable p is 2/1001."""
     d = diff[np.isfinite(diff)]
     b = len(d)
+    if b == 0:
+        return float("nan")      # untestable; excluded from Holm families
     lo, hi = (d <= 0).sum() + 1, (d >= 0).sum() + 1
     return float(min(1.0, 2 * min(lo, hi) / (b + 1)))
 
@@ -140,17 +142,22 @@ def holm(pvals: list[float]) -> list[float]:
 
 def add_holm(rows: list[dict], family_keys: tuple[str, ...]) -> None:
     """Add p_holm / reject_holm_05 in place; one family per distinct value of
-    family_keys among rows that carry a p_boot."""
+    family_keys among rows that carry a finite p. Holm runs on the unrounded
+    p (private key "_p"); p_boot/p_holm are rounded only for output."""
     fams = defaultdict(list)
     for r in rows:
-        if r.get("p_boot", "") != "":
+        p = r.pop("_p", None)
+        if p is not None and np.isfinite(p):
+            r["_p_exact"] = p
             fams[tuple(r[k] for k in family_keys)].append(r)
+        elif p is not None:
+            r["p_boot"] = ""
     for r in rows:
         r.setdefault("family_size", "")
         r.setdefault("p_holm", "")
         r.setdefault("reject_holm_05", "")
     for fam in fams.values():
-        adj = holm([r["p_boot"] for r in fam])
+        adj = holm([r.pop("_p_exact") for r in fam])
         for r, a in zip(fam, adj):
             r["family_size"] = len(fam)
             r["p_holm"] = round(a, 4)
@@ -196,6 +203,7 @@ def pairwise(data, boot) -> list[dict]:
                         "ci_high": round(hi, 2), "ci_includes_0": lo <= 0 <= hi,
                         "p_boot_delta_le_0": round(float((diff <= 0).mean()), 3),
                         "p_boot": round(boot_p_two_sided(diff), 4),
+                        "_p": boot_p_two_sided(diff),
                     })
     # one family = the 16 adjacent-pair tests of one metric within one ranking
     add_holm(out, ("condition", "ranking", "metric"))
@@ -283,6 +291,7 @@ def cs_by_length(data, length, flags, boot) -> list[dict]:
                         "n_valid_resamples": int(np.isfinite(diff).sum()),
                         "buckets_used": "+".join(used),
                         "p_boot": round(boot_p_two_sided(diff), 4),
+                        "_p": boot_p_two_sided(diff),
                     })
     # one family = the 17 per-model standardised tests of one metric within one
     # (bucket scheme, condition); per-bucket descriptive rows are not tested
@@ -315,12 +324,14 @@ def write_pairwise_md(path, rows):
          "`p_boot_delta_le_0` = share of resamples where the lower-ranked model "
          "is not worse. `p_boot` = two-sided bootstrap p-value "
          "(2·min(#Δ≤0+1, #Δ≥0+1)/(B+1)); `p_holm` = Holm–Bonferroni adjusted, "
-         "one family per (condition, ranking, metric) = the 16 adjacent pairs; "
-         f"`reject_holm_05` = p_holm < {ALPHA}. With B = 1000 the smallest p_boot "
-         "is 0.002.", ""]
+         "one family per (condition, ranking, metric) = all adjacent pairs of "
+         f"that ranking (`family_size`); `reject_holm_05` = p_holm < {ALPHA}. "
+         f"With B = {N_BOOT} the smallest p_boot is {2 / (N_BOOT + 1):.4f}. Adjacent "
+         "pairs are chosen by the point-estimate ranking on the same data, so "
+         "delta >= 0 on the ranking's own metric by construction.", ""]
     cols = ["rank_upper", "model_upper", "model_lower", "metric", "value_upper",
-            "value_lower", "delta", "ci_low", "ci_high", "ci_includes_0", "p_boot",
-            "p_holm", "reject_holm_05"]
+            "value_lower", "delta", "ci_low", "ci_high", "ci_includes_0",
+            "p_boot_delta_le_0", "p_boot", "p_holm", "reject_holm_05"]
     for c in CONDITIONS:
         for rk in METRICS:
             sel = [r for r in rows if r["condition"] == c and r["ranking"] == rk]
@@ -355,8 +366,8 @@ def write_cs_md(path, rows):
          f"{N_BOOT}-resample bootstrap CI (seed {SEED}) of the difference; resamples "
          "that leave a cell empty are dropped (`n_valid_resamples`). For the "
          "standardised rows, `p_boot` is the two-sided bootstrap p-value and "
-         "`p_holm` the Holm–Bonferroni adjustment over the 17 models (one family "
-         f"per scheme × condition × metric); `reject_holm_05` = p_holm < {ALPHA}.", ""]
+         "`p_holm` the Holm–Bonferroni adjustment over all models (one family "
+         f"per scheme × condition × metric, size in `family_size`); `reject_holm_05` = p_holm < {ALPHA}.", ""]
     cols = ["model", "bucket", "n_flagged", "n_unflagged", "flagged", "unflagged",
             "delta", "ci_low", "ci_high", "ci_includes_0", "p_boot", "p_holm",
             "reject_holm_05", "n_valid_resamples", "buckets_used"]
