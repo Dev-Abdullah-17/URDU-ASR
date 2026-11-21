@@ -174,8 +174,12 @@ index matrix is the same as above (1000 × 471, seed 42).
   same session are likely correlated. A session- or speaker-level bootstrap
   would probably give wider intervals. The dataset does not include session or
   speaker ids, so this was not run.
-- No correction for multiple comparisons is applied: 16 adjacent pairs × 3
-  rankings × 2 conditions, and 17 models in finding 3.
+- Multiple comparisons: findings 1 and 3 report Holm–Bonferroni adjusted
+  p-values (`p_holm`, `reject_holm_05`) alongside the unadjusted 95% CIs.
+  Families are defined per table (below), not across the whole study.
+  `p_boot` is a two-sided bootstrap p-value, 2·min(#Δ≤0 + 1, #Δ≥0 + 1)/(B + 1).
+  With B = 1000 its smallest value is 0.002, which limits how small an
+  adjusted p can get (16 × 0.002 = 0.032 for the smallest p in a family of 16).
 
 ### 1. Adjacent-model differences (`reeval_pairwise.md`)
 
@@ -215,9 +219,32 @@ Under N7_numwords the same differences are +0.50 [−1.41, 1.99], +0.05
 
   The per-ranking chains are in `reeval_pairwise.md`.
 
+**Holm–Bonferroni.** One family is the 16 adjacent-pair tests of one metric
+within one ranking and condition. The table counts pairs on the ranking's own
+metric:
+
+| ranking | CI excludes 0 | Holm rejects (p_holm < 0.05) |
+|---|---|---|
+| utterance-averaged WER | 6 of 16 | 3 of 16 |
+| corpus WER | 7 of 16 | 5 (as_released~) / 6 (N7_numwords) of 16 |
+| corpus CER | 7 of 16 | 6 of 16 |
+
+Two of the pairs that drop out under Holm sit at p_holm = 0.0519, just above
+0.05. With B = 1000, a p this close to the threshold could flip with more
+resamples (see the resolution limit above). Both are in the utterance-averaged ranking:
+seamless-m4t-medium-ur vs hf-seamless-m4t-medium, and whisper-small-ur vs
+whisper-medium. For whisper-large-v3 vs whisper-large-v3-ur, p_boot is
+0.48–0.99 and p_holm is 1.0 for every metric and both conditions.
+
 *Limitations:*
 - The test covers adjacent pairs only. A chain like A≈B, B≈C does not mean A≈C.
-- `p_boot_delta_le_0` is the share of resamples, not a p-value from a formal test.
+- Adjacent pairs are chosen by the point-estimate ranking of the same data they
+  are then tested on, so on the ranking's own metric the observed difference is
+  ≥ 0 by construction. The two-sided bootstrap test is still valid, but the
+  pairs are not a pre-registered set.
+- `p_boot_delta_le_0` is the one-sided share of resamples; the test statistic is
+  the two-sided `p_boot`. Both use the same utterance-level bootstrap, so the
+  independence caveat above applies to the adjusted p-values too.
 
 ### 2. Reference length and the two WER aggregations (`reeval_length_buckets.md`)
 
@@ -296,6 +323,12 @@ every case.
 With the requested buckets, flagged WER is lower for 14 of 17 models, and the
 CI excludes 0 for 3 (WER) and 6 (CER).
 
+**Holm–Bonferroni.** One family is the 17 per-model standardised tests of one
+metric within one bucket scheme and condition. After adjustment, one test
+remains below 0.05: seamless-m4t-v2-large-ur, corpus CER, fine scheme
+(p_boot 0.002, p_holm 0.034). This holds under both conditions. No corpus WER
+test survives in either scheme.
+
 For whisper-large-v3-ur, the standardised corpus WER is 14.53 (flagged) vs
 16.43 (unflagged), a difference of −1.90 [−4.97, 1.52].
 
@@ -310,5 +343,5 @@ distributions within these buckets.
   does not control.
 - Only 3 flagged utterances are ≤15 words, so short utterances are effectively
   excluded from the comparison.
-- With 64 flagged utterances the intervals are wide, and no correction is made
-  for 17 models × 2 metrics.
+- With 64 flagged utterances the intervals are wide. Holm correction is applied
+  within each 17-model family, not across metrics, schemes or conditions.
