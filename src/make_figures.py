@@ -35,6 +35,7 @@ NEUTRAL = "#b5b3ad"
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]  # fixed order
 UP, DOWN = SERIES[0], SERIES[1]   # rank improves / worsens under corpus WER
 MARKERS = ["o", "s", "D", "^", "v"]
+DODGE = 0.07  # x offset between series on categorical axes
 DPI = 200
 
 plt.rcParams.update({
@@ -108,8 +109,10 @@ def length_chart(table, buckets, condition, out, top_k=5):
             by_b = {r["bucket"]: float(r["corpus_wer"]) for r in rows if r["model"] == m}
             y = [by_b[b] for b in order]
             ymax = max(ymax, max(y))
-            ax.plot(x, y, color=SERIES[i], lw=2, marker=MARKERS[i], ms=6,
-                    markeredgecolor=SURFACE, markeredgewidth=1.2, label=m, zorder=3)
+            # small horizontal dodge so converging markers stay visible
+            xd = [v + (i - (top_k - 1) / 2) * DODGE for v in x]
+            ax.plot(xd, y, color=SERIES[i], lw=2, marker=MARKERS[i], ms=6,
+                    markeredgecolor=SURFACE, markeredgewidth=1.2, label=m, zorder=3 + i)
         ax.set_xticks(x)
         ax.set_xticklabels([f"{b.replace('<=', '≤')} words\nn = {n_utts[b]}" for b in order],
                            fontsize=8)
@@ -121,13 +124,17 @@ def length_chart(table, buckets, condition, out, top_k=5):
         ax.set_xlim(-0.3, len(order) - 0.7)
     axes[0].set_ylabel("corpus WER within bucket (%)")
     axes[0].set_ylim(0, ymax * 1.08)
-    axes[0].legend(frameon=False, fontsize=7.5, loc="upper right")
+    from matplotlib.lines import Line2D
+    handles = [Line2D([0], [0], color=SERIES[i], lw=2, marker=MARKERS[i], ms=6,
+                      markeredgewidth=0) for i in range(len(top))]
+    axes[0].legend(handles, top, frameon=False, fontsize=7.5, loc="upper right")
     label = "as released" if condition.startswith("as_released") else condition
     fig.suptitle(f"WER by reference length, top {top_k} models by published WER ({label})",
                  fontsize=10, color=TEXT, x=0.01, ha="left")
-    fig.text(0.01, 0.005, "Length = raw reference word count. The ≤5 bucket has only 12 "
-             "utterances (41 words); its values are noisy.", fontsize=7, color=TEXT_2)
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.text(0.01, 0.02, "Length = raw reference word count. The ≤5 bucket has only 12 "
+             "utterances (41 words); its values are noisy. Series are offset slightly "
+             "along x so overlapping points stay visible.", fontsize=7, color=TEXT_2)
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig(out, dpi=DPI)
     plt.close(fig)
 
