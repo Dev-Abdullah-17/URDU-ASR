@@ -312,3 +312,29 @@ distributions within these buckets.
   excluded from the comparison.
 - With 64 flagged utterances the intervals are wide, and no correction is made
   for 17 models × 2 metrics.
+
+## Figures (`src/make_figures.py`)
+
+Both figures are built from the committed aggregate tables only:
+
+```bash
+python src/make_figures.py --results-dir results
+```
+
+![Model ranking, utterance-averaged vs corpus WER](figures/rank_slope_utt_vs_corpus.png)
+
+**`figures/rank_slope_utt_vs_corpus.png`.** Rank of each of the 17 models by
+utterance-averaged WER (left, as published) and by corpus WER (right), as
+released. Lines are colored blue where the rank improves under corpus WER,
+orange where it worsens, and gray where it is unchanged. Labels give the WER
+in %. τ = 0.897.
+
+![WER by reference length, top 5 models](figures/wer_by_length_top5.png)
+
+**`figures/wer_by_length_top5.png`.** Corpus WER within each reference-length
+bucket for the five best models by published WER, as released. The left panel
+uses the requested buckets and the right panel the finer split. Series are
+offset slightly along x so overlapping points stay visible. The ≤5 bucket
+holds 12 utterances. This figure shows *corpus* WER per bucket, while the
+finding 2 text quotes utterance-averaged WER per bucket; both are in
+`reeval_length_buckets.csv`.
