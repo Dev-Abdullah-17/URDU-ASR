@@ -49,3 +49,20 @@ Append-only record of experiment/analysis runs (no reference text).
   - `results/figures/wer_by_length_top5.png` — 1920x840 px, 199139 bytes, sha256 `6b82039a337c0a1be8fcd3c56ed2f4a75716a4989e090392ad2946577e66766e`
 - Sanity checks (zoomed crop of the finer-split panel): the whisper-large-v3-ur circle at 31-50 is visible; the whisper-large-v3 orange squares at 16-30 and 31-50 are fully visible, with no line crossing them. All markers are visible in both panels. Legend lines are solid, the footnote is clear of the edge, and no text overlaps.
 - Warnings: none.
+
+## 2026-11-21T12:39:55Z — make_figures.py re-run after label/tau fixes (DPI 150)
+
+- Worktree / branch: `/home/user/wt/d` / `figures`
+- Commit: `5fe873cdd6d59cfd5df0b994d75336ec6bfc35b5` ("make_figures: condition-aware labels and tau, honest as_released~ label"). Changes: titles use `condition_label()`; tau is computed with `scipy.stats.kendalltau` from the two plotted rankings; left axis reads "(the paper's metric)"; the footnote is derived from the smallest spec bucket; DPI 200 -> 150; `--condition` restricted to `as_released~`/`N7_numwords`.
+- Tree state before run: only untracked `external/` (not an input). The previous figures and RUNS.md are committed in `81f3e6e`.
+- Command (from repo root): `python3 src/make_figures.py --results-dir results` (default `--condition as_released~`)
+- Exit status: 0; wall time: 1.58 s
+- Environment: Python 3.13.18, matplotlib 3.11.2 (Agg), scipy 1.18.1 (newly imported; `scipy>=1.10` in requirements.txt)
+- Inputs (working-tree blob == `HEAD:<file>` blob): `results/reeval_table.csv` `a55dcad3b2201fdc3dc338ea1a4b470b5267ccb3`; `results/reeval_length_buckets.csv` `7666fecb0424dad745521076c8740d5d4f45676d` (unchanged).
+- Outputs:
+  - `results/figures/rank_slope_utt_vs_corpus.png` — 1080x960 px, 222999 bytes, sha256 `d2fd12422bb69fb26c827c761bd55462c76bb6a69dd3428c2a75b669264c9081`
+  - `results/figures/wer_by_length_top5.png` — 1440x630 px, 151286 bytes, sha256 `a2b0b526bd685ca9e04bec65db87bbe9da3efc815a078eb647669db812a7a283`
+- Sanity checks:
+  - Slope chart: title reads "(Kendall's τ = 0.897)" over "as released~ (reproduction of the published scoring)", and the computed τ matches the table's `kendall_tau_vs_as_released` for corpus_wer (0.897). Left header reads "(the paper's metric)". 17 models appear on each side. Spot-checked against `reeval_table.csv` (overall, as_released~): seamless-m4t-v2-large utt 29.85 (rank 7) / corpus 32.99 (rank 8); mms-1b-ur utt 42.45 (rank 10) / corpus 42.09 (rank 9). Both match.
+  - Length chart: suptitle ends with "— as released~ (reproduction of the published scoring)"; the footnote reads "The ≤5 bucket has only 12 utterances (0.3% of words)"; 5 models in both panels; n = 12/103/356 and 115/149/115/92. All markers are visible (zoomed crop of the finer split), legend lines are solid, and no text overlaps.
+- Warnings: none.
