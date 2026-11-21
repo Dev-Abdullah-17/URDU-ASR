@@ -24,3 +24,24 @@
   resolution-limited (e.g. several `p_holm` = 0.052 sit just above 0.05). Pre-existing committed files
   `results/reeval_table.{csv,md}` and `results/README.md` contain isolated Arabic-script letters in normalization-rule
   descriptions (e.g. hamza merge rule); these are not reference text and were not touched by this run.
+
+## 2026-11-21T12:39:19Z — reeval_analysis re-run after review fixes
+
+- Worktree / branch: `/home/user/wt/c` / `holm-correction`
+- Git commit: `0b5a19929cae382def9d909950f164760984a314` ("Holm on unrounded p, exclude untestable rows, restore p_boot_delta_le_0")
+- Tree status before run: dirty only by untracked `external/`; no tracked changes.
+- Command (from worktree root): `python3 src/reeval_analysis.py --results-dir results`
+- Exit status: 0; wall time 4.0 s
+- Environment: Python 3.13.18, numpy 2.5.3, pandas 3.0.5
+- Provenance (from `results/reeval_meta.json`): WER-We-Stand commit `9dd7f4d0580a608e53942916a37d4d417328b1b6`;
+  HF dataset `urdu-asr/csalt-voice` revision `6f0c4fdeea94c77b4b64c4b88d5887e087566a5f`; 471 utterances, 17 models;
+  paired bootstrap B = 1000, seed 42.
+- Outputs written: `results/reeval_pairwise.{csv,md}`, `results/reeval_length_buckets.{csv,md}` (unchanged),
+  `results/reeval_cs_by_length.{csv,md}`.
+- Changes vs HEAD tables: only `p_holm` differs (pairwise 54 rows, cs standardised 40 rows), by at most 0.0007,
+  because Holm now runs on unrounded p-values (e.g. 0.052 -> 0.0519, 0.068 -> 0.0679). No change in
+  `reject_holm_05` or any other column; no `p_holm` crossed 0.05. `reeval_pairwise.md` again shows `p_boot_delta_le_0`;
+  legend text in both .md files updated.
+- Sanity checks: same as previous run, all pass (17 models; pairwise 18 x 16, `family_size` 16; cs standardised
+  8 x 17, `family_size` 17; no NaN in value/delta/CI/p columns; `p_holm >= p_boot`; no Urdu-script characters in the
+  regenerated tables).

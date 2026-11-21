@@ -1,6 +1,6 @@
 # Code-switch flag vs length
 
-Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw reference. Per-bucket rows compare flagged vs unflagged utterances of the same length bucket. `standardised` rows weight each group's per-bucket corpus metric by the pooled word share of the bucket, using only buckets where both groups have >= 5 utterances (`buckets_used`), with a 1000-resample bootstrap CI (seed 42) of the difference; resamples that leave a cell empty are dropped (`n_valid_resamples`). For the standardised rows, `p_boot` is the two-sided bootstrap p-value and `p_holm` the Holm–Bonferroni adjustment over the 17 models (one family per scheme × condition × metric); `reject_holm_05` = p_holm < 0.05.
+Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw reference. Per-bucket rows compare flagged vs unflagged utterances of the same length bucket. `standardised` rows weight each group's per-bucket corpus metric by the pooled word share of the bucket, using only buckets where both groups have >= 5 utterances (`buckets_used`), with a 1000-resample bootstrap CI (seed 42) of the difference; resamples that leave a cell empty are dropped (`n_valid_resamples`). For the standardised rows, `p_boot` is the two-sided bootstrap p-value and `p_holm` the Holm–Bonferroni adjustment over all models (one family per scheme × condition × metric, size in `family_size`); `reject_holm_05` = p_holm < 0.05.
 
 ## as_released~ — corpus_wer — buckets: spec
 
@@ -13,11 +13,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-all | <=5 | 0 | 12 |  | 70.73 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 63.33 | 52.36 | 10.97 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 40.51 | 43.78 | -3.27 |  |  |  |  |  |  |  |  |
-| mms-1b-all | standardised | 61 | 295 | 40.51 | 43.78 | -3.27 | -6.52 | -0.16 | False | 0.042 | 0.63 | False | 1000 | >15 |
+| mms-1b-all | standardised | 61 | 295 | 40.51 | 43.78 | -3.27 | -6.52 | -0.16 | False | 0.042 | 0.6294 | False | 1000 | >15 |
 | mms-1b-ur | <=5 | 0 | 12 |  | 58.54 |  |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 6-15 | 3 | 100 | 56.67 | 43.38 | 13.28 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >15 | 61 | 295 | 38.62 | 42.8 | -4.18 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 38.62 | 42.8 | -4.18 | -8.02 | 0.31 | True | 0.0639 | 0.8386 | False | 1000 | >15 |
+| mms-1b-ur | standardised | 61 | 295 | 38.62 | 42.8 | -4.18 | -8.02 | 0.31 | True | 0.0639 | 0.8392 | False | 1000 | >15 |
 | mms-300m-ur | <=5 | 0 | 12 |  | 73.17 |  |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 6-15 | 3 | 100 | 80.0 | 67.39 | 12.61 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >15 | 61 | 295 | 70.97 | 67.43 | 3.54 |  |  |  |  |  |  |  |  |
@@ -33,7 +33,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 39.02 |  |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 23.33 | 20.32 | 3.01 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >15 | 61 | 295 | 14.7 | 19.25 | -4.55 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.7 | 19.25 | -4.55 | -7.48 | -1.59 | False | 0.006 | 0.102 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.7 | 19.25 | -4.55 | -7.48 | -1.59 | False | 0.006 | 0.1019 | False | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 85.37 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 773.33 | 241.21 | 532.12 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 107.9 | 126.97 | -19.07 |  |  |  |  |  |  |  |  |
@@ -41,11 +41,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-base-ur | <=5 | 0 | 12 |  | 51.22 |  |  |  |  |  |  |  |  |  |
 | whisper-base-ur | 6-15 | 3 | 100 | 63.33 | 49.34 | 13.99 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | >15 | 61 | 295 | 43.56 | 51.52 | -7.96 |  |  |  |  |  |  |  |  |
-| whisper-base-ur | standardised | 61 | 295 | 43.56 | 51.52 | -7.96 | -15.06 | -0.96 | False | 0.034 | 0.544 | False | 1000 | >15 |
+| whisper-base-ur | standardised | 61 | 295 | 43.56 | 51.52 | -7.96 | -15.06 | -0.96 | False | 0.034 | 0.5435 | False | 1000 | >15 |
 | whisper-large-v3 | <=5 | 0 | 12 |  | 29.27 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 6-15 | 3 | 100 | 23.33 | 24.39 | -1.05 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | >15 | 61 | 295 | 13.5 | 16.1 | -2.6 |  |  |  |  |  |  |  |  |
-| whisper-large-v3 | standardised | 61 | 295 | 13.5 | 16.1 | -2.6 | -5.04 | 0.09 | True | 0.0599 | 0.8386 | False | 1000 | >15 |
+| whisper-large-v3 | standardised | 61 | 295 | 13.5 | 16.1 | -2.6 | -5.04 | 0.09 | True | 0.0599 | 0.8392 | False | 1000 | >15 |
 | whisper-large-v3-ur | <=5 | 0 | 12 |  | 17.07 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 6-15 | 3 | 100 | 23.33 | 20.79 | 2.54 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >15 | 61 | 295 | 13.9 | 16.43 | -2.53 |  |  |  |  |  |  |  |  |
@@ -86,11 +86,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-all | <=5 | 0 | 12 |  | 38.24 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 30.71 | 24.89 | 5.82 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 17.17 | 19.49 | -2.32 |  |  |  |  |  |  |  |  |
-| mms-1b-all | standardised | 61 | 295 | 17.17 | 19.49 | -2.32 | -4.24 | -0.21 | False | 0.036 | 0.504 | False | 1000 | >15 |
+| mms-1b-all | standardised | 61 | 295 | 17.17 | 19.49 | -2.32 | -4.24 | -0.21 | False | 0.036 | 0.5035 | False | 1000 | >15 |
 | mms-1b-ur | <=5 | 0 | 12 |  | 34.71 |  |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 6-15 | 3 | 100 | 22.86 | 22.18 | 0.68 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >15 | 61 | 295 | 17.06 | 21.93 | -4.87 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 17.06 | 21.93 | -4.87 | -7.52 | -1.93 | False | 0.004 | 0.068 | False | 1000 | >15 |
+| mms-1b-ur | standardised | 61 | 295 | 17.06 | 21.93 | -4.87 | -7.52 | -1.93 | False | 0.004 | 0.0679 | False | 1000 | >15 |
 | mms-300m-ur | <=5 | 0 | 12 |  | 38.82 |  |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 6-15 | 3 | 100 | 37.14 | 29.34 | 7.81 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >15 | 61 | 295 | 29.1 | 28.06 | 1.04 |  |  |  |  |  |  |  |  |
@@ -106,7 +106,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 23.53 |  |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 16.43 | 10.77 | 5.65 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >15 | 61 | 295 | 8.63 | 12.13 | -3.51 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.63 | 12.13 | -3.51 | -5.89 | -0.96 | False | 0.004 | 0.068 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.63 | 12.13 | -3.51 | -5.89 | -0.96 | False | 0.004 | 0.0679 | False | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 48.82 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 479.29 | 169.94 | 309.34 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 81.16 | 93.15 | -11.99 |  |  |  |  |  |  |  |  |
@@ -118,19 +118,19 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-large-v3 | <=5 | 0 | 12 |  | 18.82 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 6-15 | 3 | 100 | 16.43 | 13.4 | 3.03 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | >15 | 61 | 295 | 7.06 | 9.39 | -2.33 |  |  |  |  |  |  |  |  |
-| whisper-large-v3 | standardised | 61 | 295 | 7.06 | 9.39 | -2.33 | -4.39 | -0.19 | False | 0.038 | 0.504 | False | 1000 | >15 |
+| whisper-large-v3 | standardised | 61 | 295 | 7.06 | 9.39 | -2.33 | -4.39 | -0.19 | False | 0.038 | 0.5035 | False | 1000 | >15 |
 | whisper-large-v3-ur | <=5 | 0 | 12 |  | 11.76 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 6-15 | 3 | 100 | 10.71 | 11.0 | -0.28 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >15 | 61 | 295 | 6.52 | 9.4 | -2.88 |  |  |  |  |  |  |  |  |
-| whisper-large-v3-ur | standardised | 61 | 295 | 6.52 | 9.4 | -2.88 | -4.98 | -0.79 | False | 0.006 | 0.09 | False | 1000 | >15 |
+| whisper-large-v3-ur | standardised | 61 | 295 | 6.52 | 9.4 | -2.88 | -4.98 | -0.79 | False | 0.006 | 0.0899 | False | 1000 | >15 |
 | whisper-medium | <=5 | 0 | 12 |  | 21.76 |  |  |  |  |  |  |  |  |  |
 | whisper-medium | 6-15 | 3 | 100 | 29.29 | 23.88 | 5.4 |  |  |  |  |  |  |  |  |
 | whisper-medium | >15 | 61 | 295 | 21.46 | 33.33 | -11.87 |  |  |  |  |  |  |  |  |
-| whisper-medium | standardised | 61 | 295 | 21.46 | 33.33 | -11.87 | -24.2 | 1.35 | True | 0.0779 | 0.8569 | False | 1000 | >15 |
+| whisper-medium | standardised | 61 | 295 | 21.46 | 33.33 | -11.87 | -24.2 | 1.35 | True | 0.0779 | 0.8571 | False | 1000 | >15 |
 | whisper-medium-ur | <=5 | 0 | 12 |  | 20.59 |  |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | 6-15 | 3 | 100 | 12.14 | 17.53 | -5.39 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | >15 | 61 | 295 | 11.96 | 15.26 | -3.3 |  |  |  |  |  |  |  |  |
-| whisper-medium-ur | standardised | 61 | 295 | 11.96 | 15.26 | -3.3 | -6.1 | -0.24 | False | 0.04 | 0.504 | False | 1000 | >15 |
+| whisper-medium-ur | standardised | 61 | 295 | 11.96 | 15.26 | -3.3 | -6.1 | -0.24 | False | 0.04 | 0.5035 | False | 1000 | >15 |
 | whisper-small | <=5 | 0 | 12 |  | 30.0 |  |  |  |  |  |  |  |  |  |
 | whisper-small | 6-15 | 3 | 100 | 20.71 | 61.44 | -40.72 |  |  |  |  |  |  |  |  |
 | whisper-small | >15 | 61 | 295 | 28.25 | 28.24 | 0.01 |  |  |  |  |  |  |  |  |
@@ -159,11 +159,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-all | <=5 | 0 | 12 |  | 70.73 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 63.33 | 52.36 | 10.97 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 40.51 | 43.76 | -3.25 |  |  |  |  |  |  |  |  |
-| mms-1b-all | standardised | 61 | 295 | 40.51 | 43.76 | -3.25 | -6.48 | -0.07 | False | 0.044 | 0.66 | False | 1000 | >15 |
+| mms-1b-all | standardised | 61 | 295 | 40.51 | 43.76 | -3.25 | -6.48 | -0.07 | False | 0.044 | 0.6593 | False | 1000 | >15 |
 | mms-1b-ur | <=5 | 0 | 12 |  | 58.54 |  |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 6-15 | 3 | 100 | 56.67 | 43.48 | 13.19 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >15 | 61 | 295 | 38.55 | 42.8 | -4.24 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 38.55 | 42.8 | -4.24 | -8.06 | 0.2 | True | 0.0639 | 0.8946 | False | 1000 | >15 |
+| mms-1b-ur | standardised | 61 | 295 | 38.55 | 42.8 | -4.24 | -8.06 | 0.2 | True | 0.0639 | 0.8951 | False | 1000 | >15 |
 | mms-300m-ur | <=5 | 0 | 12 |  | 73.17 |  |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 6-15 | 3 | 100 | 80.0 | 67.39 | 12.61 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >15 | 61 | 295 | 70.97 | 67.43 | 3.54 |  |  |  |  |  |  |  |  |
@@ -179,7 +179,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 39.02 |  |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 23.33 | 20.6 | 2.73 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >15 | 61 | 295 | 15.0 | 19.47 | -4.48 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 15.0 | 19.47 | -4.48 | -7.4 | -1.45 | False | 0.008 | 0.136 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 15.0 | 19.47 | -4.48 | -7.4 | -1.45 | False | 0.008 | 0.1359 | False | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 85.37 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 773.33 | 241.21 | 532.12 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 107.93 | 126.9 | -18.97 |  |  |  |  |  |  |  |  |
@@ -187,11 +187,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-base-ur | <=5 | 0 | 12 |  | 51.22 |  |  |  |  |  |  |  |  |  |
 | whisper-base-ur | 6-15 | 3 | 100 | 63.33 | 49.34 | 13.99 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | >15 | 61 | 295 | 43.5 | 51.41 | -7.92 |  |  |  |  |  |  |  |  |
-| whisper-base-ur | standardised | 61 | 295 | 43.5 | 51.41 | -7.92 | -15.09 | -0.87 | False | 0.036 | 0.576 | False | 1000 | >15 |
+| whisper-base-ur | standardised | 61 | 295 | 43.5 | 51.41 | -7.92 | -15.09 | -0.87 | False | 0.036 | 0.5754 | False | 1000 | >15 |
 | whisper-large-v3 | <=5 | 0 | 12 |  | 29.27 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 6-15 | 3 | 100 | 26.67 | 24.48 | 2.19 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | >15 | 61 | 295 | 13.6 | 16.17 | -2.57 |  |  |  |  |  |  |  |  |
-| whisper-large-v3 | standardised | 61 | 295 | 13.6 | 16.17 | -2.57 | -5.04 | 0.11 | True | 0.0659 | 0.8946 | False | 1000 | >15 |
+| whisper-large-v3 | standardised | 61 | 295 | 13.6 | 16.17 | -2.57 | -5.04 | 0.11 | True | 0.0659 | 0.8951 | False | 1000 | >15 |
 | whisper-large-v3-ur | <=5 | 0 | 12 |  | 17.07 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 6-15 | 3 | 100 | 30.0 | 20.51 | 9.49 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >15 | 61 | 295 | 13.8 | 16.47 | -2.66 |  |  |  |  |  |  |  |  |
@@ -232,11 +232,11 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-all | <=5 | 0 | 12 |  | 38.24 |  |  |  |  |  |  |  |  |  |
 | mms-1b-all | 6-15 | 3 | 100 | 30.71 | 24.89 | 5.82 |  |  |  |  |  |  |  |  |
 | mms-1b-all | >15 | 61 | 295 | 17.06 | 19.42 | -2.35 |  |  |  |  |  |  |  |  |
-| mms-1b-all | standardised | 61 | 295 | 17.06 | 19.42 | -2.35 | -4.28 | -0.27 | False | 0.03 | 0.42 | False | 1000 | >15 |
+| mms-1b-all | standardised | 61 | 295 | 17.06 | 19.42 | -2.35 | -4.28 | -0.27 | False | 0.03 | 0.4196 | False | 1000 | >15 |
 | mms-1b-ur | <=5 | 0 | 12 |  | 34.71 |  |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 6-15 | 3 | 100 | 22.86 | 22.27 | 0.59 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >15 | 61 | 295 | 16.95 | 21.9 | -4.95 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 16.95 | 21.9 | -4.95 | -7.59 | -1.97 | False | 0.004 | 0.068 | False | 1000 | >15 |
+| mms-1b-ur | standardised | 61 | 295 | 16.95 | 21.9 | -4.95 | -7.59 | -1.97 | False | 0.004 | 0.0679 | False | 1000 | >15 |
 | mms-300m-ur | <=5 | 0 | 12 |  | 38.82 |  |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 6-15 | 3 | 100 | 37.14 | 29.34 | 7.81 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | >15 | 61 | 295 | 29.08 | 28.05 | 1.03 |  |  |  |  |  |  |  |  |
@@ -252,7 +252,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large-ur | <=5 | 0 | 12 |  | 23.53 |  |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 6-15 | 3 | 100 | 16.43 | 10.95 | 5.47 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >15 | 61 | 295 | 8.81 | 12.24 | -3.43 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.81 | 12.24 | -3.43 | -5.85 | -0.9 | False | 0.006 | 0.09 | False | 1000 | >15 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 8.81 | 12.24 | -3.43 | -5.85 | -0.9 | False | 0.006 | 0.0899 | False | 1000 | >15 |
 | whisper-base | <=5 | 0 | 12 |  | 48.82 |  |  |  |  |  |  |  |  |  |
 | whisper-base | 6-15 | 3 | 100 | 479.29 | 169.9 | 309.39 |  |  |  |  |  |  |  |  |
 | whisper-base | >15 | 61 | 295 | 81.15 | 93.09 | -11.93 |  |  |  |  |  |  |  |  |
@@ -264,19 +264,19 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-large-v3 | <=5 | 0 | 12 |  | 18.82 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 6-15 | 3 | 100 | 16.43 | 13.49 | 2.94 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | >15 | 61 | 295 | 7.06 | 9.38 | -2.32 |  |  |  |  |  |  |  |  |
-| whisper-large-v3 | standardised | 61 | 295 | 7.06 | 9.38 | -2.32 | -4.34 | -0.17 | False | 0.04 | 0.52 | False | 1000 | >15 |
+| whisper-large-v3 | standardised | 61 | 295 | 7.06 | 9.38 | -2.32 | -4.34 | -0.17 | False | 0.04 | 0.5195 | False | 1000 | >15 |
 | whisper-large-v3-ur | <=5 | 0 | 12 |  | 11.76 |  |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 6-15 | 3 | 100 | 12.14 | 10.95 | 1.19 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >15 | 61 | 295 | 6.35 | 9.38 | -3.03 |  |  |  |  |  |  |  |  |
-| whisper-large-v3-ur | standardised | 61 | 295 | 6.35 | 9.38 | -3.03 | -5.04 | -1.01 | False | 0.004 | 0.068 | False | 1000 | >15 |
+| whisper-large-v3-ur | standardised | 61 | 295 | 6.35 | 9.38 | -3.03 | -5.04 | -1.01 | False | 0.004 | 0.0679 | False | 1000 | >15 |
 | whisper-medium | <=5 | 0 | 12 |  | 21.76 |  |  |  |  |  |  |  |  |  |
 | whisper-medium | 6-15 | 3 | 100 | 29.29 | 23.88 | 5.4 |  |  |  |  |  |  |  |  |
 | whisper-medium | >15 | 61 | 295 | 21.48 | 33.24 | -11.76 |  |  |  |  |  |  |  |  |
-| whisper-medium | standardised | 61 | 295 | 21.48 | 33.24 | -11.76 | -24.09 | 1.54 | True | 0.0839 | 0.9229 | False | 1000 | >15 |
+| whisper-medium | standardised | 61 | 295 | 21.48 | 33.24 | -11.76 | -24.09 | 1.54 | True | 0.0839 | 0.9231 | False | 1000 | >15 |
 | whisper-medium-ur | <=5 | 0 | 12 |  | 20.59 |  |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | 6-15 | 3 | 100 | 13.57 | 17.53 | -3.96 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | >15 | 61 | 295 | 11.97 | 15.25 | -3.28 |  |  |  |  |  |  |  |  |
-| whisper-medium-ur | standardised | 61 | 295 | 11.97 | 15.25 | -3.28 | -6.07 | -0.21 | False | 0.04 | 0.52 | False | 1000 | >15 |
+| whisper-medium-ur | standardised | 61 | 295 | 11.97 | 15.25 | -3.28 | -6.07 | -0.21 | False | 0.04 | 0.5195 | False | 1000 | >15 |
 | whisper-small | <=5 | 0 | 12 |  | 30.0 |  |  |  |  |  |  |  |  |  |
 | whisper-small | 6-15 | 3 | 100 | 20.71 | 61.41 | -40.7 |  |  |  |  |  |  |  |  |
 | whisper-small | >15 | 61 | 295 | 28.03 | 28.18 | -0.15 |  |  |  |  |  |  |  |  |
@@ -322,17 +322,17 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-medium-ur | 16-30 | 17 | 132 | 14.07 | 15.69 | -1.62 |  |  |  |  |  |  |  |  |
 | seamless-m4t-medium-ur | 31-50 | 18 | 97 | 13.2 | 18.27 | -5.08 |  |  |  |  |  |  |  |  |
 | seamless-m4t-medium-ur | >50 | 26 | 66 | 16.21 | 19.68 | -3.47 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.75 | 18.28 | -3.53 | -7.09 | 0.19 | True | 0.0699 | 0.9786 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.75 | 18.28 | -3.53 | -7.09 | 0.19 | True | 0.0699 | 0.979 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large | <=15 | 3 | 112 | 23.33 | 24.84 | -1.51 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 16-30 | 17 | 132 | 20.6 | 29.12 | -8.52 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 31-50 | 18 | 97 | 23.4 | 28.07 | -4.67 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | >50 | 26 | 66 | 37.91 | 42.45 | -4.55 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 29.17 | 34.71 | -5.54 | -11.38 | -0.43 | False | 0.042 | 0.63 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 29.17 | 34.71 | -5.54 | -11.38 | -0.43 | False | 0.042 | 0.6294 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 23.33 | 21.02 | 2.31 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 13.82 | 14.18 | -0.36 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 15.51 | 18.22 | -2.71 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >50 | 26 | 66 | 14.57 | 23.58 | -9.01 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.68 | 19.63 | -4.94 | -8.02 | -1.7 | False | 0.006 | 0.102 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.68 | 19.63 | -4.94 | -8.02 | -1.7 | False | 0.006 | 0.1019 | False | 1000 | 16-30+31-50+>50 |
 | whisper-base | <=15 | 3 | 112 | 773.33 | 235.4 | 537.94 |  |  |  |  |  |  |  |  |
 | whisper-base | 16-30 | 17 | 132 | 143.72 | 152.76 | -9.04 |  |  |  |  |  |  |  |  |
 | whisper-base | 31-50 | 18 | 97 | 130.88 | 129.91 | 0.98 |  |  |  |  |  |  |  |  |
@@ -342,7 +342,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-base-ur | 16-30 | 17 | 132 | 42.96 | 41.2 | 1.76 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | 31-50 | 18 | 97 | 41.5 | 54.61 | -13.11 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | >50 | 26 | 66 | 44.5 | 55.96 | -11.46 |  |  |  |  |  |  |  |  |
-| whisper-base-ur | standardised | 61 | 295 | 43.18 | 51.98 | -8.79 | -16.23 | -1.76 | False | 0.02 | 0.32 | False | 1000 | 16-30+31-50+>50 |
+| whisper-base-ur | standardised | 61 | 295 | 43.18 | 51.98 | -8.79 | -16.23 | -1.76 | False | 0.02 | 0.3197 | False | 1000 | 16-30+31-50+>50 |
 | whisper-large-v3 | <=15 | 3 | 112 | 23.33 | 24.57 | -1.23 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 16-30 | 17 | 132 | 14.32 | 14.87 | -0.55 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 31-50 | 18 | 97 | 14.01 | 16.44 | -2.43 |  |  |  |  |  |  |  |  |
@@ -402,7 +402,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-ur | 16-30 | 17 | 132 | 19.16 | 20.44 | -1.28 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 31-50 | 18 | 97 | 17.55 | 20.93 | -3.38 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >50 | 26 | 66 | 16.42 | 23.79 | -7.36 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 17.44 | 22.08 | -4.64 | -7.68 | -1.05 | False | 0.022 | 0.352 | False | 1000 | 16-30+31-50+>50 |
+| mms-1b-ur | standardised | 61 | 295 | 17.44 | 22.08 | -4.64 | -7.68 | -1.05 | False | 0.022 | 0.3516 | False | 1000 | 16-30+31-50+>50 |
 | mms-300m-ur | <=15 | 3 | 112 | 37.14 | 29.69 | 7.46 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 16-30 | 17 | 132 | 25.49 | 25.49 | -0.0 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 31-50 | 18 | 97 | 27.39 | 26.38 | 1.01 |  |  |  |  |  |  |  |  |
@@ -417,7 +417,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large | 16-30 | 17 | 132 | 13.31 | 19.42 | -6.12 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 31-50 | 18 | 97 | 14.82 | 18.52 | -3.7 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | >50 | 26 | 66 | 27.68 | 30.97 | -3.28 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 20.17 | 24.26 | -4.1 | -8.37 | -0.27 | False | 0.042 | 0.63 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 20.17 | 24.26 | -4.1 | -8.37 | -0.27 | False | 0.042 | 0.6294 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 16.43 | 11.24 | 5.19 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 7.1 | 8.61 | -1.51 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 7.78 | 10.67 | -2.89 |  |  |  |  |  |  |  |  |
@@ -442,7 +442,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-large-v3-ur | 16-30 | 17 | 132 | 8.28 | 9.8 | -1.52 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 31-50 | 18 | 97 | 7.2 | 9.66 | -2.46 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >50 | 26 | 66 | 5.89 | 8.91 | -3.02 |  |  |  |  |  |  |  |  |
-| whisper-large-v3-ur | standardised | 61 | 295 | 6.88 | 9.36 | -2.48 | -4.68 | -0.06 | False | 0.046 | 0.644 | False | 1000 | 16-30+31-50+>50 |
+| whisper-large-v3-ur | standardised | 61 | 295 | 6.88 | 9.36 | -2.48 | -4.68 | -0.06 | False | 0.046 | 0.6434 | False | 1000 | 16-30+31-50+>50 |
 | whisper-medium | <=15 | 3 | 112 | 29.29 | 23.81 | 5.48 |  |  |  |  |  |  |  |  |
 | whisper-medium | 16-30 | 17 | 132 | 23.42 | 23.67 | -0.25 |  |  |  |  |  |  |  |  |
 | whisper-medium | 31-50 | 18 | 97 | 31.73 | 32.01 | -0.28 |  |  |  |  |  |  |  |  |
@@ -452,7 +452,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-medium-ur | 16-30 | 17 | 132 | 13.31 | 15.0 | -1.69 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | 31-50 | 18 | 97 | 11.25 | 14.95 | -3.7 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | >50 | 26 | 66 | 11.95 | 15.7 | -3.75 |  |  |  |  |  |  |  |  |
-| whisper-medium-ur | standardised | 61 | 295 | 12.05 | 15.29 | -3.24 | -6.22 | 0.06 | True | 0.0579 | 0.7527 | False | 1000 | 16-30+31-50+>50 |
+| whisper-medium-ur | standardised | 61 | 295 | 12.05 | 15.29 | -3.24 | -6.22 | 0.06 | True | 0.0579 | 0.7532 | False | 1000 | 16-30+31-50+>50 |
 | whisper-small | <=15 | 3 | 112 | 20.71 | 60.28 | -39.57 |  |  |  |  |  |  |  |  |
 | whisper-small | 16-30 | 17 | 132 | 65.05 | 24.01 | 41.04 |  |  |  |  |  |  |  |  |
 | whisper-small | 31-50 | 18 | 97 | 21.67 | 27.21 | -5.55 |  |  |  |  |  |  |  |  |
@@ -502,17 +502,17 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-medium-ur | 16-30 | 17 | 132 | 14.57 | 16.12 | -1.55 |  |  |  |  |  |  |  |  |
 | seamless-m4t-medium-ur | 31-50 | 18 | 97 | 12.93 | 18.46 | -5.53 |  |  |  |  |  |  |  |  |
 | seamless-m4t-medium-ur | >50 | 26 | 66 | 16.27 | 19.93 | -3.66 |  |  |  |  |  |  |  |  |
-| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.81 | 18.55 | -3.74 | -7.47 | 0.04 | True | 0.0579 | 0.8106 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-medium-ur | standardised | 61 | 295 | 14.81 | 18.55 | -3.74 | -7.47 | 0.04 | True | 0.0579 | 0.8112 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large | <=15 | 3 | 112 | 23.33 | 25.02 | -1.69 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 16-30 | 17 | 132 | 21.11 | 29.32 | -8.21 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 31-50 | 18 | 97 | 23.4 | 28.18 | -4.78 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | >50 | 26 | 66 | 38.12 | 42.48 | -4.36 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 29.38 | 34.8 | -5.42 | -11.16 | -0.23 | False | 0.044 | 0.66 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 29.38 | 34.8 | -5.42 | -11.16 | -0.23 | False | 0.044 | 0.6593 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 23.33 | 21.29 | 2.04 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 14.32 | 14.28 | 0.04 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 15.65 | 18.65 | -3.0 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | >50 | 26 | 66 | 14.89 | 23.71 | -8.83 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.99 | 19.84 | -4.85 | -7.99 | -1.7 | False | 0.006 | 0.102 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large-ur | standardised | 61 | 295 | 14.99 | 19.84 | -4.85 | -7.99 | -1.7 | False | 0.006 | 0.1019 | False | 1000 | 16-30+31-50+>50 |
 | whisper-base | <=15 | 3 | 112 | 773.33 | 235.4 | 537.94 |  |  |  |  |  |  |  |  |
 | whisper-base | 16-30 | 17 | 132 | 143.97 | 152.63 | -8.66 |  |  |  |  |  |  |  |  |
 | whisper-base | 31-50 | 18 | 97 | 130.88 | 129.8 | 1.08 |  |  |  |  |  |  |  |  |
@@ -522,7 +522,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-base-ur | 16-30 | 17 | 132 | 42.96 | 41.14 | 1.83 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | 31-50 | 18 | 97 | 41.5 | 54.37 | -12.87 |  |  |  |  |  |  |  |  |
 | whisper-base-ur | >50 | 26 | 66 | 44.39 | 55.93 | -11.54 |  |  |  |  |  |  |  |  |
-| whisper-base-ur | standardised | 61 | 295 | 43.14 | 51.87 | -8.74 | -16.21 | -1.72 | False | 0.02 | 0.32 | False | 1000 | 16-30+31-50+>50 |
+| whisper-base-ur | standardised | 61 | 295 | 43.14 | 51.87 | -8.74 | -16.21 | -1.72 | False | 0.02 | 0.3197 | False | 1000 | 16-30+31-50+>50 |
 | whisper-large-v3 | <=15 | 3 | 112 | 26.67 | 24.66 | 2.01 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 16-30 | 17 | 132 | 14.82 | 15.0 | -0.18 |  |  |  |  |  |  |  |  |
 | whisper-large-v3 | 31-50 | 18 | 97 | 13.88 | 16.49 | -2.62 |  |  |  |  |  |  |  |  |
@@ -582,7 +582,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | mms-1b-ur | 16-30 | 17 | 132 | 19.16 | 20.42 | -1.26 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | 31-50 | 18 | 97 | 17.52 | 20.84 | -3.31 |  |  |  |  |  |  |  |  |
 | mms-1b-ur | >50 | 26 | 66 | 16.26 | 23.8 | -7.54 |  |  |  |  |  |  |  |  |
-| mms-1b-ur | standardised | 61 | 295 | 17.36 | 22.05 | -4.69 | -7.74 | -1.07 | False | 0.02 | 0.32 | False | 1000 | 16-30+31-50+>50 |
+| mms-1b-ur | standardised | 61 | 295 | 17.36 | 22.05 | -4.69 | -7.74 | -1.07 | False | 0.02 | 0.3197 | False | 1000 | 16-30+31-50+>50 |
 | mms-300m-ur | <=15 | 3 | 112 | 37.14 | 29.69 | 7.46 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 16-30 | 17 | 132 | 25.49 | 25.48 | 0.01 |  |  |  |  |  |  |  |  |
 | mms-300m-ur | 31-50 | 18 | 97 | 27.33 | 26.36 | 0.97 |  |  |  |  |  |  |  |  |
@@ -597,7 +597,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | seamless-m4t-v2-large | 16-30 | 17 | 132 | 13.48 | 19.55 | -6.07 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | 31-50 | 18 | 97 | 14.92 | 18.61 | -3.69 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large | >50 | 26 | 66 | 27.76 | 30.95 | -3.18 |  |  |  |  |  |  |  |  |
-| seamless-m4t-v2-large | standardised | 61 | 295 | 20.28 | 24.32 | -4.04 | -8.33 | -0.24 | False | 0.044 | 0.616 | False | 1000 | 16-30+31-50+>50 |
+| seamless-m4t-v2-large | standardised | 61 | 295 | 20.28 | 24.32 | -4.04 | -8.33 | -0.24 | False | 0.044 | 0.6154 | False | 1000 | 16-30+31-50+>50 |
 | seamless-m4t-v2-large-ur | <=15 | 3 | 112 | 16.43 | 11.42 | 5.01 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 16-30 | 17 | 132 | 7.39 | 8.63 | -1.24 |  |  |  |  |  |  |  |  |
 | seamless-m4t-v2-large-ur | 31-50 | 18 | 97 | 7.91 | 10.9 | -2.99 |  |  |  |  |  |  |  |  |
@@ -622,7 +622,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-large-v3-ur | 16-30 | 17 | 132 | 8.4 | 9.81 | -1.42 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | 31-50 | 18 | 97 | 7.11 | 9.59 | -2.48 |  |  |  |  |  |  |  |  |
 | whisper-large-v3-ur | >50 | 26 | 66 | 5.62 | 8.9 | -3.28 |  |  |  |  |  |  |  |  |
-| whisper-large-v3-ur | standardised | 61 | 295 | 6.76 | 9.34 | -2.58 | -4.79 | -0.16 | False | 0.036 | 0.54 | False | 1000 | 16-30+31-50+>50 |
+| whisper-large-v3-ur | standardised | 61 | 295 | 6.76 | 9.34 | -2.58 | -4.79 | -0.16 | False | 0.036 | 0.5395 | False | 1000 | 16-30+31-50+>50 |
 | whisper-medium | <=15 | 3 | 112 | 29.29 | 23.81 | 5.48 |  |  |  |  |  |  |  |  |
 | whisper-medium | 16-30 | 17 | 132 | 23.42 | 23.63 | -0.21 |  |  |  |  |  |  |  |  |
 | whisper-medium | 31-50 | 18 | 97 | 31.7 | 31.77 | -0.07 |  |  |  |  |  |  |  |  |
@@ -632,7 +632,7 @@ Flagged = extended detector (Latin letters or Urdu-script loanword) on the raw r
 | whisper-medium-ur | 16-30 | 17 | 132 | 13.36 | 15.03 | -1.67 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | 31-50 | 18 | 97 | 11.19 | 14.91 | -3.72 |  |  |  |  |  |  |  |  |
 | whisper-medium-ur | >50 | 26 | 66 | 11.97 | 15.69 | -3.71 |  |  |  |  |  |  |  |  |
-| whisper-medium-ur | standardised | 61 | 295 | 12.06 | 15.28 | -3.22 | -6.18 | 0.09 | True | 0.0559 | 0.7267 | False | 1000 | 16-30+31-50+>50 |
+| whisper-medium-ur | standardised | 61 | 295 | 12.06 | 15.28 | -3.22 | -6.18 | 0.09 | True | 0.0559 | 0.7273 | False | 1000 | 16-30+31-50+>50 |
 | whisper-small | <=15 | 3 | 112 | 20.71 | 60.26 | -39.55 |  |  |  |  |  |  |  |  |
 | whisper-small | 16-30 | 17 | 132 | 64.99 | 23.93 | 41.06 |  |  |  |  |  |  |  |  |
 | whisper-small | 31-50 | 18 | 97 | 21.51 | 27.13 | -5.62 |  |  |  |  |  |  |  |  |
