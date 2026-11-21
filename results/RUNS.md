@@ -4,8 +4,11 @@ Append-only record of experiment/analysis runs (no reference text).
 
 ## 2026-11-20 (retrospective) — reeval_wws.py (produced reeval_table.*)
 
-Logged after the fact: this run predates `RUNS.md`. Details reconstructed from
-`results/reeval_meta.json` and the commit that added the tables.
+Logged after the fact: this run predates `RUNS.md`. Sources: commit, dataset,
+models, chars.json and bootstrap fields come from `results/reeval_meta.json`.
+The split name comes from the script's own log line (`[refs] using validation
+split`). The date and wall time come from the session in which it was run (the
+`time` output, real 0m25.0s); they are not stored in meta.json.
 
 - Command: `python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results`
 - Code: `src/reeval_wws.py` as of commit f1c91c8 (tables committed in 0bd9e36)
