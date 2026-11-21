@@ -4,12 +4,13 @@ Strategies generate Urdu-script text (Urdu letters, Arabic confusables, three
 digit scripts, harakat, zero-width marks, Urdu/ASCII punctuation, Latin letters
 and several kinds of whitespace), not only ASCII.
 
-Properties that turned out to be false are kept as xfail(strict=True) tests with
-the minimal counterexample, next to a passing test of the domain where the
-property does hold.
+Counterexamples found by earlier runs (NFC idempotence, Latin lowercasing +
+combining mark, Arabic confusable + hamza, >4300-digit runs) were fixed in
+src/ and are pinned here with @example / explicit cases as regression tests.
 """
 
 import dataclasses
+import itertools
 import os
 import re
 import sys
@@ -54,6 +55,15 @@ wide_text = st.text(
     st.characters(min_codepoint=0x0600, max_codepoint=0x06FF) | st.sampled_from(ALPHABET),
     max_size=40,
 )
+# Widest net, for idempotence: the above plus Latin combining marks
+# (U+0300-U+036F), every zero-width char, Latin letters that NFC / lowercasing
+# interact with (J + caron -> j + caron -> U+01F0, Kelvin sign -> K, ...).
+LATIN_COMBINING = "".join(chr(c) for c in range(0x0300, 0x0370))
+LATIN_EXTRA = LATIN + "ijnuCEIJNU" + "\u0130\u212a\u01f0\u00e9\u00c5"
+widest_char = (st.characters(min_codepoint=0x0600, max_codepoint=0x06FF)
+               | st.sampled_from(ALPHABET)
+               | st.sampled_from(LATIN_COMBINING + ZERO_WIDTH + LATIN_EXTRA))
+widest_text = st.text(widest_char, max_size=40)
 urdu_word = st.text(st.sampled_from(URDU_LETTERS), min_size=1, max_size=8)
 latin_word = st.text(st.sampled_from(LATIN), min_size=1, max_size=8)
 
@@ -122,47 +132,115 @@ tag_token = st.sampled_from(["#um", "#uh", "#آہ", "#اوں", "#ہمم", "##", 
 @FAST
 @given(n=configs(strip_diacritics=st.just(True)), x=urdu_text)
 def test_idempotent_all_flag_combinations_with_strip_diacritics(n, x):
-    """Holds for every flag combination when strip_diacritics=True and the only
-    combining marks in the input are the ones stripped (see xfails below)."""
+    """Curated alphabet, strip_diacritics=True (the original passing domain)."""
     y = n(x)
     assert n(y) == y
 
 
-@FAST
-@given(n=configs(), x=urdu_text)
-@example(n=UrduNormalizer(strip_diacritics=False), x="إٓ")
-@example(n=scoring_normalizer, x="بٗ​ٖ")
-@example(n=scoring_normalizer, x="e​́")
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG normalize_urdu.py:177-190: NFC runs only at step 1, but later steps can "
-    "leave non-NFC text, so a second pass changes it. "
-    "(a) map_confusables, strip_diacritics=False: 'إٓ' (U+0625 U+0653) -> 'آ' "
-    "decomposed (U+0627 U+0653) -> 2nd pass 'آ' (U+0622). "
-    "(b) zero-width removal after NFC, scoring_normalizer: 'ب\\u0657\\u200b\\u0656' "
-    "-> marks out of canonical order -> 2nd pass reorders them; "
-    "'e\\u200b\\u0301' -> 'e\\u0301' -> 2nd pass 'é'."))
+# Every flag combination (10 fields incl. strip_disfluency_tags,
+# merge_hamza_madda, strip_diacritics=False, both latin_tokens modes).
+_FLAG_FIELDS = ["strip_disfluency_tags", "map_confusables", "merge_hamza_madda",
+                "strip_diacritics", "normalize_digits", "digits_to_words",
+                "remove_punct", "lower_latin", "collapse_whitespace"]
+ALL_CONFIGS = [UrduNormalizer(**dict(zip(_FLAG_FIELDS, bits)), latin_tokens=lt)
+               for bits in itertools.product([False, True], repeat=len(_FLAG_FIELDS))
+               for lt in ("keep", "drop")]
+assert len(ALL_CONFIGS) == 1024
+
+
+@settings(max_examples=400, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(n=configs(), x=widest_text)
+# Former counterexamples (fixed by zero-width removal before NFC, NFC after the
+# confusable map / at the end, and the fixed-point loop):
+@example(n=UrduNormalizer(strip_diacritics=False), x="\u0625\u0653")   # إٓ -> decomposed آ
+@example(n=scoring_normalizer, x="\u0628\u0657\u200b\u0656")         # ZW between marks
+@example(n=scoring_normalizer, x="e\u200b\u0301")                      # ZW splits e + acute
+@example(n=scoring_normalizer, x="J\u030c")                             # lower -> j + caron
+@example(n=UrduNormalizer(strip_diacritics=False, merge_hamza_madda=True,
+                          strip_disfluency_tags=True), x="\u0647\u0654\u200d\u0653")
 def test_idempotent_every_configuration_every_input(n, x):
+    """n(n(x)) == n(x) for every configuration on the widest alphabet (Arabic
+    block, zero-width chars, Latin letters and Latin combining marks)."""
     y = n(x)
     assert n(y) == y
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG normalize_urdu.py:191-193: lowercasing after NFC can create a "
-    "composable pair: scoring_normalizer('J\\u030c') = 'j\\u030c', "
-    "scoring_normalizer('j\\u030c') = 'ǰ' (U+01F0)."))
+@settings(max_examples=25, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(x=widest_text)
+def test_idempotent_exhaustive_flag_grid(x):
+    """Every one of the 1024 flag combinations on each generated input."""
+    for n in ALL_CONFIGS:
+        y = n(x)
+        assert n(y) == y, n
+
+
 def test_idempotent_after_lowercasing_latin_with_combining_mark():
-    y = scoring_normalizer("J̌")
+    """Regression: lowercasing 'J' before U+030C creates the composable pair
+    'j' + caron; the final NFC / fixed-point loop composes it in the same call."""
+    y = scoring_normalizer("J\u030c")
+    assert y == "\u01f0"
     assert scoring_normalizer(y) == y
 
 
 @settings(max_examples=150, deadline=None)
 @given(x=wide_text)
-def test_scoring_presets_idempotent_on_arabic_block_without_zero_width(x):
-    x = "".join(c for c in x if c not in ZERO_WIDTH)
-    for _, n in SCORING_KEEP + SCORING_DROP:
-        if n.strip_diacritics:
-            y = n(x)
-            assert n(y) == y
+def test_scoring_presets_idempotent_on_arabic_block(x):
+    for name, n in SCORING_KEEP + SCORING_DROP:
+        y = n(x)
+        assert n(y) == y, name
+
+
+# --- regression tests for the step reordering ------------------------------ #
+
+@pytest.mark.parametrize("arabic, urdu", [
+    ("\u0647\u0654", "\u06c2"),     # Arabic heh + hamza   vs  ۂ
+    ("\u06c1\u0654", "\u06c2"),     # Urdu heh + hamza     vs  ۂ
+    ("\u0649\u0654", "\u0626"),     # alef maksura + hamza vs  ئ
+    ("\u064a\u0654", "\u0626"),     # Arabic yeh + hamza   vs  ئ
+])
+def test_arabic_and_urdu_hamza_spellings_agree(arabic, urdu):
+    """n('هٔ') == n('ۂ') etc. for scoring_normalizer and every N-condition that
+    maps confusables (N1-N3 deliberately keep Arabic letters as-is)."""
+    checked = 0
+    for name, n in SCORING_KEEP + SCORING_DROP:
+        if not n.map_confusables:
+            assert name in {"N1_unicode", "N2_punct", "N3_lower"}, name
+            continue
+        checked += 1
+        assert n(arabic) == n(urdu), name
+        if not n.merge_hamza_madda:
+            assert n(arabic) == urdu, name               # hamza kept, not stripped
+    assert checked >= 6       # scoring_normalizer, N4..N7, N7+hamza_merge, N8
+
+
+_MARKS = DIACRITICS + "\u0656\u0657\u0658\u065c\u06e1\u06ed" + LATIN_COMBINING[:0x30]
+
+
+@st.composite
+def adversarial_marks(draw):
+    """Base letters (Arabic, confusable, Latin) each followed by a long run of
+    combining marks with zero-width chars interleaved between the marks."""
+    out = []
+    for _ in range(draw(st.integers(1, 4))):
+        out.append(draw(st.sampled_from(LETTERS + LATIN_EXTRA + " ")))
+        for _ in range(draw(st.integers(0, 12))):
+            out.append(draw(st.sampled_from(_MARKS)))
+            out.append(draw(st.text(st.sampled_from(ZERO_WIDTH), max_size=2)))
+    return "".join(out)
+
+
+@settings(max_examples=150, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(n=configs(), x=adversarial_marks())
+@example(n=scoring_normalizer, x="J" + "\u200b".join("\u030c\u0301\u0323" * 4))
+@example(n=UrduNormalizer(strip_diacritics=False),
+         x="\u0625" + "\u200c".join("\u0653\u0654\u0650\u0651" * 5))
+def test_fixed_point_loop_terminates_and_is_stable(n, x):
+    """The pass loop is capped (_MAX_PASSES); on adversarial mark/zero-width
+    sequences it must still reach a fixed point within the cap, i.e. one more
+    single pass changes nothing."""
+    y = n(x)
+    assert n._one_pass(y) == y
+    assert n(y) == y
 
 
 # --------------------------------------------------------------------------- #
@@ -238,16 +316,16 @@ def test_confusables_absent_when_mapped(n, x):
 
 
 @FAST
-@given(n=configs(strip_diacritics=st.just(True)), x=urdu_text)
+@given(n=configs(), x=wide_text)
+# Former counterexamples: hamza canonicalisation used to run before the
+# confusable map, so the Arabic spelling lost its hamza.
 @example(n=UrduNormalizer(), x="هٔ")
 @example(n=UrduNormalizer(), x="ىٔ")
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG normalize_urdu.py:184-190: the yeh+hamza canonicalisation runs before "
-    "the confusable map and there is no NFC afterwards, so an Arabic confusable "
-    "followed by hamza loses the hamza while its Urdu counterpart keeps it: "
-    "n('ه\\u0654') = 'ہ' but n('ہ\\u0654') = 'ۂ'; n('ى\\u0654') = 'ی' but "
-    "n('ی\\u0654') = 'ئ'."))
+@example(n=UrduNormalizer(strip_diacritics=False), x="هٔ")
 def test_confusable_spelling_does_not_change_output(n, x):
+    """With map_confusables on, writing a word with Arabic confusables (incl.
+    confusable + combining hamza) or with their Urdu counterparts gives the
+    same output, under every other flag combination."""
     n.map_confusables = True
     assert n(x) == n(x.translate(nu._CHAR_TABLE))
 
@@ -281,13 +359,14 @@ def test_trailing_punctuation_is_ignored(words, marks):
 @FAST
 @given(x=urdu_text)
 def test_flag_off_steps_are_noops(x):
-    """With every optional step off, only NFC + zero-width removal apply."""
+    """With every optional step off, only zero-width removal, NFC and yeh+hamza
+    composition apply (zero-width removal first, so marks recompose)."""
     n = UrduNormalizer(strip_disfluency_tags=False,
                        map_confusables=False, strip_diacritics=False,
                        normalize_digits=False, remove_punct=False,
                        lower_latin=False, collapse_whitespace=False)
-    expected = nu._ZW_RE.sub("", unicodedata.normalize("NFC", x)).replace(
-        nu._DECOMPOSED_YEH_HAMZA, "ئ")
+    expected = unicodedata.normalize("NFC", unicodedata.normalize(
+        "NFC", nu._ZW_RE.sub("", x)).replace(nu._DECOMPOSED_YEH_HAMZA, "ئ"))
     assert n(x) == expected
 
 
@@ -372,18 +451,42 @@ def test_latin_drop_keeps_urdu_tokens(urdu, latin, data):
         assert y, name
 
 
+def _has_ascii_letter(t: str) -> bool:
+    return any(c.isascii() and c.isalpha() for c in t)
+
+
+@st.composite
+def text_with_mixed_tokens(draw):
+    """Whitespace-joined tokens: pure Urdu, pure Latin, glued Urdu+Latin
+    ("آپok"), tags, and free curated text."""
+    glued = st.tuples(urdu_word, latin_word, st.booleans()).map(
+        lambda t: t[0] + t[1] if t[2] else t[1] + t[0])
+    toks = draw(st.lists(urdu_word | latin_word | glued | tag_token | urdu_text,
+                         min_size=1, max_size=6))
+    seps = draw(st.lists(st.text(st.sampled_from(WHITESPACE), min_size=1, max_size=2),
+                         min_size=len(toks), max_size=len(toks)))
+    return "".join(t + s for t, s in zip(toks, seps))
+
+
 @FAST
-@given(x=text_with_urdu_letter())
-@example(x="آپok")
-@pytest.mark.xfail(strict=True, reason=(
-    "By design latin_tokens='drop' drops whole whitespace tokens containing a "
-    "Latin letter, so Urdu letters glued to Latin letters vanish: "
-    "N8_latin_drop('آپok') == ''. Not a crash bug, but the 'Urdu letters "
-    "survive drop' property is false for mixed-script tokens."))
-def test_urdu_letter_survives_latin_drop_any_text(x):
-    assume(_has_letter_outside_tags(x))       # tag case is removed by design, not this bug
+@given(x=text_with_mixed_tokens() | text_with_urdu_letter())
+@example(x="آپok کیسے ہیں")        # glued token goes, the others stay
+@example(x="ok #آہ ہاں")           # letters inside a tag go by design
+@example(x="ہاں#um ٹھیک")          # Latin-containing token goes as a whole
+def test_urdu_letter_survives_latin_drop_in_latin_free_tokens(x):
+    """latin_tokens='drop' removes whole whitespace tokens containing a Latin
+    letter (by design, so a glued 'آپok' vanishes -- see the edge-case test
+    below). Every *other* whitespace token keeps its Urdu letters: a token with
+    no Latin letter and an Urdu letter outside any `#\\S+` tag normalizes to a
+    non-empty Arabic-script string that appears, as whole words, in n(x)."""
     for name, n in SCORING_DROP:
-        assert any(_is_arabic_letter(c) for c in n(x)), name
+        y = n(x)
+        for t in x.split():
+            if _has_ascii_letter(t) or not _has_letter_outside_tags(t):
+                continue
+            yt = n(t)
+            assert any(_is_arabic_letter(c) for c in yt), (name, t)
+            assert f" {yt} " in f" {y} ", (name, t, y)
 
 
 def test_latin_drop_mixed_token_edge_cases():
@@ -465,11 +568,10 @@ def test_strip_disfluency_tags_noop_without_hash(n, x):
 
 
 @FAST
-@given(n=configs(strip_diacritics=st.just(True)), x=st.lists(urdu_text | tag_token,
-                                                            max_size=5).map(" ".join))
+@given(n=configs(), x=st.lists(widest_text | tag_token, max_size=5).map(" ".join))
 def test_idempotent_with_tag_stripping(n, x):
-    """(d) Idempotence with the flag on, in the domain where it held before
-    (strip_diacritics=True, curated alphabet), now with tags mixed in."""
+    """(d) Idempotence with the flag on, every other flag combination, widest
+    alphabet, tags mixed in."""
     n = _tag_on(n)
     y = n(x)
     assert n(y) == y
@@ -478,11 +580,9 @@ def test_idempotent_with_tag_stripping(n, x):
 @settings(max_examples=150, deadline=None)
 @given(x=text_with_tags)
 def test_scoring_presets_idempotent_with_tags(x):
-    x = "".join(c for c in x if c not in ZERO_WIDTH)
     for name, n in SCORING_KEEP + SCORING_DROP:
-        if n.strip_diacritics:
-            y = n(x)
-            assert n(y) == y, name
+        y = n(x)
+        assert n(y) == y, name
 
 
 # --------------------------------------------------------------------------- #
@@ -536,14 +636,14 @@ def test_digits_to_urdu_words_removes_all_unicode_digits(x):
     assert not any(unicodedata.category(c) == "Nd" for c in digits_to_urdu_words(x))
 
 
-@pytest.mark.xfail(strict=True, raises=ValueError, reason=(
-    "BUG normalize_urdu.py:112: int(whole) raises ValueError ('Exceeds the limit "
-    "(4300 digits) for integer string conversion') for a digit run longer than "
-    "sys.get_int_max_str_digits(), so UrduNormalizer(digits_to_words=True) "
-    "crashes on '1' * 5000 instead of reading it digit by digit."))
-def test_digits_to_words_very_long_digit_run_does_not_crash():
-    y = UrduNormalizer(digits_to_words=True)("1" * 5000)
-    assert y.split() == ["ایک"] * 5000
+@pytest.mark.parametrize("k", [10, 4300, 4301, 5000])
+def test_digits_to_words_very_long_digit_run_does_not_crash(k):
+    """Regression: runs longer than 9 digits are read digit by digit without
+    int(), so runs beyond sys.get_int_max_str_digits() (4300) no longer raise."""
+    y = UrduNormalizer(digits_to_words=True)("1" * k)
+    assert y.split() == ["ایک"] * k
+    y = UrduNormalizer(digits_to_words=True)("۲" * k + ".5")      # Urdu digits + fraction
+    assert y.split() == ["دو"] * k + ["اعشاریہ", "پانچ"]
 
 
 @FAST

@@ -1,8 +1,9 @@
 """Property-based (hypothesis) and edge-case tests for the metric code in
 src/reeval_wws.py and src/reeval_analysis.py (synthetic data only).
 
-Properties found to be false are kept as xfail(strict=True) with the minimal
-counterexample.
+Counterexamples found by earlier runs (raw-whitespace tokenisation, NaN CI on
+small subsets, empty-reference disagreement) were fixed in src/ and are pinned
+here as regression tests.
 """
 
 import os
@@ -213,16 +214,29 @@ def test_edit_counts_empty_hypothesis_is_all_deletions():
     assert errs[0] == lens[0] == 3
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "The 'raw' condition is documented as 'whitespace split', but jiwer splits "
-    "only on ' ' (and collapses runs of 2+ whitespace): edit_counts(['آپ\\tکیسے'], "
-    "['آپ کیسے'], 'word') -> errors [2.0], ref words [1.0]; with '\\t\\t' it is 0 "
-    "errors. Inconsistent tokenisation of raw text containing tabs/newlines/NBSP."))
 def test_raw_condition_tokenises_on_any_whitespace():
+    """Regression: edit_counts used to let jiwer split only on ' ', so
+    'آپ\\tکیسے' was one word (2 errors vs 'آپ کیسے'; 0 with '\\t\\t')."""
     raw = next(c for c in rw.build_conditions(set(), "x") if c.name == "raw")
-    r, h = raw.ref_fn("آپ\tکیسے"), raw.hyp_fn("آپ کیسے")
-    errs, lens = rw.edit_counts([r], [h], "word")
-    assert errs[0] == 0 and lens[0] == 2
+    for sep in ("\t", "\t\t", "\n", "\u00a0", " \u3000 "):
+        r, h = raw.ref_fn("آپ" + sep + "کیسے"), raw.hyp_fn("آپ کیسے")
+        errs, lens = rw.edit_counts([r], [h], "word")
+        assert errs[0] == 0 and lens[0] == 2, repr(sep)
+
+
+@FAST
+@given(words=st.lists(word, min_size=1, max_size=8), data=st.data())
+def test_word_tokenisation_ignores_whitespace_kind_and_run_length(words, data):
+    """Any run of Unicode whitespace separates words exactly as str.split():
+    messy-whitespace ref vs single-space hyp has 0 word errors, len(words) ref
+    words, and the same counts as the canonical spacing in either role."""
+    ws = st.text(st.sampled_from(" \t\n\r\u00a0\u2009\u3000"), min_size=1, max_size=3)
+    seps = data.draw(st.lists(ws, min_size=len(words) + 1, max_size=len(words) + 1))
+    messy = seps[0] + "".join(w + s for w, s in zip(words, seps[1:]))
+    clean = " ".join(words)
+    errs, lens = rw.edit_counts([messy, clean], [clean, messy], "word")
+    assert not errs.any()
+    assert (lens == len(words)).all()
 
 
 # --------------------------------------------------------------------------- #
@@ -280,7 +294,8 @@ def test_utt_avg_equals_corpus_wer_when_ref_lengths_equal(n, length, data, seed)
         bu = ra.metric(d, "utt_wer", boot, mask)
         bc = ra.metric(d, "corpus_wer", boot, mask)
     assert s["utt_wer"] == pytest.approx(s["corpus_wer"])
-    assert np.allclose(s["utt_wer_ci"], s["corpus_wer_ci"], equal_nan=True)  # NaN: see xfail below
+    # NaN only if every resample misses the subset (ci() drops non-finite ones)
+    assert np.allclose(s["utt_wer_ci"], s["corpus_wer_ci"], equal_nan=True)
     assert ra.metric(d, "utt_wer", mask=mask) == pytest.approx(ra.metric(d, "corpus_wer", mask=mask))
     assert np.allclose(bu, bc, equal_nan=True)
 
@@ -292,14 +307,10 @@ def test_utt_avg_differs_from_corpus_when_lengths_differ():
     assert ra.metric(d, "corpus_wer") == pytest.approx(100 * 2 / 10)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG reeval_wws.py:256-260 (+ ci() at 238-240): if any bootstrap resample "
-    "contains no utterance of the subset, b_n == 0 / wl sum == 0 gives NaN and "
-    "np.percentile propagates it, so the whole CI is (nan, nan). Minimal: n=471, "
-    "mask with a single True, seed-42 N_BOOT resamples -> utt_wer_ci == (nan, nan). "
-    "Hits small subsets (e.g. code_switched_latin_only). reeval_analysis.pct_ci "
-    "drops non-finite resamples instead."))
 def test_score_ci_finite_for_small_subset():
+    """Regression: n=471, a single-utterance subset, seed-42 N_BOOT resamples.
+    Resamples that miss the subset give 0/0; ci() now drops them (as
+    reeval_analysis.pct_ci does) instead of returning (nan, nan)."""
     n = rw.N_UTTERANCES
     we, wl = np.ones(n), np.full(n, 5.0)
     mask = np.zeros(n, bool)
@@ -308,6 +319,29 @@ def test_score_ci_finite_for_small_subset():
         warnings.simplefilter("ignore", RuntimeWarning)
         s = rw.score(we, wl, we, wl, mask, rw.bootstrap_indices(n))
     assert all(np.isfinite(s[k + "_ci"]).all() for k in ("utt_wer", "corpus_wer", "corpus_cer"))
+    for k in ("utt_wer", "corpus_wer"):
+        assert s[k + "_ci"] == pytest.approx((20.0, 20.0))          # every hit is 1/5
+
+
+@settings(max_examples=100, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(d=per_utt(min_n=1, max_n=40), data=st.data(), seed=st.integers(0, 999))
+def test_score_ci_equals_percentile_of_finite_resamples(d, data, seed):
+    """ci() is the 2.5/97.5 percentile of the finite resamples only; it is
+    finite whenever at least one resample contains the subset."""
+    n = len(d["we"])
+    mask = data.draw(hnp.arrays(bool, n))
+    assume(mask.any())
+    boot = rw.bootstrap_indices(n, 40, seed)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        s = rw.score(d["we"], d["wl"], d["ce"], d["cl"], mask, boot)
+        b = ra.metric(d, "corpus_wer", boot, mask)
+    finite = b[np.isfinite(b)]
+    if len(finite):
+        assert s["corpus_wer_ci"] == pytest.approx(tuple(np.percentile(finite, [2.5, 97.5])))
+        assert all(np.isfinite(s[k + "_ci"]).all() for k in ("utt_wer", "corpus_wer", "corpus_cer"))
+    else:
+        assert np.isnan(s["corpus_wer_ci"]).all()
 
 
 @FAST
@@ -322,20 +356,29 @@ def test_score_agrees_with_analysis_metric(dm):
         assert s[k] == pytest.approx(ra.metric(d, k, mask=mask))
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "Latent inconsistency: for an utterance with 0 reference words, "
-    "reeval_wws.score (line 248) counts per-utterance WER as word_err (divides "
-    "by 1) while reeval_analysis.metric (line 101) counts it as 0. we=[2], wl=[0] "
-    "-> score utt_wer 200.0 vs metric 0.0. Not reached by main() today because "
-    "empty references are masked out."))
 def test_score_and_metric_agree_on_empty_reference():
+    """Regression: an empty reference (wl=0) counts errors / max(wl, 1) in both
+    reeval_wws.score and reeval_analysis.metric (used to be 200.0 vs 0.0)."""
     d = {"we": np.array([2.0]), "wl": np.array([0.0]),
          "ce": np.array([2.0]), "cl": np.array([1.0])}
     mask = np.ones(1, bool)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         s = rw.score(d["we"], d["wl"], d["ce"], d["cl"], mask, rw.bootstrap_indices(1, 5))
-    assert s["utt_wer"] == pytest.approx(ra.metric(d, "utt_wer"))
+    assert s["utt_wer"] == pytest.approx(ra.metric(d, "utt_wer")) == 200.0
+
+
+@FAST
+@given(dm=per_utt_with_mask(min_wl=0), seed=st.integers(0, 999))
+def test_score_and_metric_agree_on_utt_wer_with_empty_references(dm, seed):
+    d, mask = dm
+    boot = rw.bootstrap_indices(len(mask), 10, seed)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        s = rw.score(d["we"], d["wl"], d["ce"], d["cl"], mask, boot)
+    expected = 100 * np.mean(d["we"][mask] / np.maximum(d["wl"][mask], 1))
+    assert s["utt_wer"] == pytest.approx(expected)
+    assert ra.metric(d, "utt_wer", mask=mask) == pytest.approx(expected)
 
 
 # --------------------------------------------------------------------------- #
