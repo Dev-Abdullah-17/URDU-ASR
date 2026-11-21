@@ -18,3 +18,5 @@ numpy>=1.24
 scipy>=1.10
 tqdm>=4.66
 pytest>=8.0
+hypothesis>=6.100
+matplotlib>=3.8

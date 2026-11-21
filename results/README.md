@@ -324,15 +324,18 @@ python src/make_figures.py --results-dir results
 ![Model ranking, utterance-averaged vs corpus WER](figures/rank_slope_utt_vs_corpus.png)
 
 **`figures/rank_slope_utt_vs_corpus.png`.** Rank of each of the 17 models by
-utterance-averaged WER (left, as published) and by corpus WER (right), as
-released. Lines are colored blue where the rank improves under corpus WER,
+utterance-averaged WER (left, the paper's metric) and by corpus WER (right),
+under `as_released~`, our reproduction of the published scoring. Its values
+differ from the paper's Table 3 by up to 0.20 points; the ranking is
+identical. Lines are colored blue where the rank improves under corpus WER,
 orange where it worsens, and gray where it is unchanged. Labels give the WER
-in %. τ = 0.897.
+in %. τ = 0.897 is computed from the two plotted rankings.
 
 ![WER by reference length, top 5 models](figures/wer_by_length_top5.png)
 
 **`figures/wer_by_length_top5.png`.** Corpus WER within each reference-length
-bucket for the five best models by published WER, as released. The left panel
+bucket for the five best models by utterance-averaged WER under
+`as_released~`. The left panel
 uses the requested buckets and the right panel the finer split. Series are
 offset slightly along x so overlapping points stay visible. The ≤5 bucket
 holds 12 utterances. This figure shows *corpus* WER per bucket, while the
