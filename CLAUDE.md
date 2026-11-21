@@ -17,7 +17,9 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
 - `src/train_whisper_lora.py` — Phase 2: LoRA fine-tuning (has `--smoke-test`).
 - `src/evaluate_model.py` — Phase 3: evaluate fine-tuned model, code-switch split, per-utterance CSV.
 - `src/reeval_wws.py` — re-evaluation of WER We Stand released outputs (normalization / aggregation / ranking study).
-- `src/reeval_analysis.py` — follow-ups on that: paired model differences, length buckets, code-switch vs length.
+- `src/reeval_analysis.py` — follow-ups on that: paired model differences (Holm-corrected), length buckets, code-switch vs length.
+- `src/make_figures.py` — figures from the committed aggregate tables.
+- `.claude/agents/` — project subagents: research-critic, code-reviewer (read-only), test-engineer (tests/ only), experiment-runner (results/ only).
 - `app/app.py` — Phase 4: Gradio voice demo.
 - `tests/` — unit tests (`pytest -q`).
 
@@ -28,12 +30,17 @@ Read `PROJECT_PLAN.md` for the full spec. It is the source of truth.
    must show loss decreasing on 20 samples. If it can't overfit 20 samples, the
    pipeline is broken — fix it before launching a real run.
 3. **Single GPU, fixed seed.** Set `--seed` and keep runs single-GPU on free tiers.
-4. **Pin versions.** Use `requirements.txt`. If you hit fp16 NaNs, prefer bf16
-   where supported; on T4/P100 (no bf16) keep fp16 loss-scaling default and reduce LR.
+4. **Pin versions.** Use `requirements.txt` (ranges) and `requirements.lock`
+   (exact pins; regenerate with the `uv pip compile` command in README.md
+   whenever requirements.txt changes; CI fails on a stale lock). The lock's
+   torch is a CUDA 13 build (Turing or newer); see README.md for P100.
+   If you hit fp16 NaNs, prefer bf16 where supported; on T4/P100 (no bf16)
+   keep fp16 loss-scaling default and reduce LR.
 5. **Never commit `data/`, `checkpoints/`, `results/`, or audio.** They're gitignored.
    Exceptions (whitelisted in `.gitignore`), because they contain no reference text:
-   `results/README.md` and `results/reeval_{table,pairwise,length_buckets,cs_by_length}.{csv,md}`
-   (aggregate numbers only) and `data/codeswitch_labels_template.csv` (utterance
+   `results/README.md`, `results/RUNS.md` (run log),
+   `results/reeval_{table,pairwise,length_buckets,cs_by_length}.{csv,md}`
+   and `results/figures/*.png` (aggregate numbers only) and `data/codeswitch_labels_template.csv` (utterance
    ids + labels only). Anything containing csalt-voice reference text —
    `results/csalt_voice_refs.json`, `results/reeval_per_utt.csv`,
    `results/reeval_codeswitch_flags.csv` — stays local: that dataset is not ours
@@ -81,4 +88,5 @@ python app/app.py
 git clone https://github.com/sameearif/WER-We-Stand external/WER-We-Stand
 python src/reeval_wws.py --wws-dir external/WER-We-Stand --out-dir results
 python src/reeval_analysis.py --results-dir results   # pairwise / length / code-switch
+python src/make_figures.py --results-dir results      # figures from committed tables
 ```

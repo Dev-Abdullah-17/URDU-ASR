@@ -185,3 +185,23 @@ def test_merge_hamza_madda_includes_waw_hamza():
     m = UrduNormalizer(merge_hamza_madda=True)
     assert m("جاؤ") == "جاو"
     assert m("آؤ") == "او"
+
+
+# --- strip_disfluency_tags ---------------------------------------------------
+
+def test_disfluency_tags_off_by_default():
+    assert n("#um میں جا رہا ہوں") == "um میں جا رہا ہوں"   # '#' removed as punct, word kept
+
+
+def test_disfluency_tags_stripped():
+    d = UrduNormalizer(strip_disfluency_tags=True)
+    assert d("#um میں جا رہا ہوں") == "میں جا رہا ہوں"
+    assert d("اچھا #آہ ٹھیک ہے") == "اچھا ٹھیک ہے"          # Arabic-script tag body
+    assert d("ہاں#hmm جی") == "ہاں جی"                       # tag glued to a word
+    assert d("#um۔ پھر") == "پھر"                            # tag with trailing Urdu full stop
+    assert d("سب ٹھیک ہے") == "سب ٹھیک ہے"                  # no tag: unchanged
+
+
+def test_disfluency_lone_hash_is_punctuation():
+    d = UrduNormalizer(strip_disfluency_tags=True)
+    assert d("نمبر # دو") == "نمبر دو"                        # lone '#' is not a tag

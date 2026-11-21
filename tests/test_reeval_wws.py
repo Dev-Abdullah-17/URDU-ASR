@@ -113,3 +113,33 @@ def test_label_template_sample_is_deterministic():
     a = sample_ids()
     assert a == sample_ids() and len(a) == 100 and len(set(a)) == 100
     assert a == sorted(a) and 0 <= a[0] and a[-1] < 471
+
+
+def test_every_n_condition_strips_disfluency_tags_raw_does_not():
+    conds = rw.build_conditions(set("abc #"), "as_released~")
+    h = "#um کل ملتے ہیں"
+    for c in conds:
+        if c.name.startswith("N"):
+            assert "um" not in c.hyp_fn(h) and c.hyp_fn(h) == c.ref_fn(h), c.name
+    raw = next(c for c in conds if c.name == "raw")
+    assert raw.hyp_fn(h) == h and raw.ref_fn(h) == h
+
+
+def test_label_sheet_build_rows(tmp_path):
+    from make_cs_label_sheet import build_rows
+    t = tmp_path / "t.csv"
+    t.write_text("utterance_id,has_english\n3,\n0,yes\n", encoding="utf-8")
+    refs = [f"ref{i}" for i in range(471)]
+    rows = build_rows(str(t), refs)
+    assert rows == [{"utterance_id": 3, "reference": "ref3", "has_english": ""},
+                    {"utterance_id": 0, "reference": "ref0", "has_english": "yes"}]
+    with pytest.raises(ValueError):
+        build_rows(str(t), refs[:10])
+
+
+def test_label_sheet_refuses_overwrite(tmp_path):
+    from make_cs_label_sheet import main
+    out = tmp_path / "sheet.csv"
+    out.write_text("labels", encoding="utf-8")
+    assert main(["--out", str(out), "--refs", str(tmp_path / "missing.json")]) == 1
+    assert out.read_text(encoding="utf-8") == "labels"

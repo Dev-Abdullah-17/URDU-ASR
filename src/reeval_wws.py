@@ -18,7 +18,9 @@ as_released   Their src/wer.py::compute_wer_csalt: hypothesis filtered to the
 raw           No normalization on either side (whitespace tokenisation only).
 N1..N8        Our normalizer, steps added cumulatively, applied identically to
               reference AND hypothesis (see CONDITIONS below). N7 keeps Latin
-              tokens, N8 drops them, so both are reported.
+              tokens, N8 drops them, so both are reported. Every N-condition
+              first drops "#..." disfluency tags (Seamless), as the paper
+              describes; `raw` keeps them.
 N7+hamza      Ablation: N7 plus the legacy (lossy) آ->ا / ئ->ی / ؤ->و merge.
 
 Metrics (for every condition x model)
@@ -169,17 +171,20 @@ def wws_clean_hyp(h: str, chars: set[str]) -> str:
 
 
 def _norm(**kw) -> UrduNormalizer:
-    base = dict(map_confusables=False, merge_hamza_madda=False, strip_diacritics=False,
+    # Every N-condition drops "#..." disfluency tags first (the paper removed
+    # Seamless "#" disfluencies by regex before scoring; references contain no "#").
+    base = dict(strip_disfluency_tags=True, map_confusables=False, merge_hamza_madda=False, strip_diacritics=False,
                 normalize_digits=False, digits_to_words=False, remove_punct=False,
                 lower_latin=False, latin_tokens="keep", collapse_whitespace=True)
     base.update(kw)
     return UrduNormalizer(**base)
 
 
-# Cumulative normalizer steps. NFC + zero-width removal are always on in
-# UrduNormalizer, so they form step N1.
+# Cumulative normalizer steps. Disfluency-tag removal, NFC and zero-width
+# removal are on in every N-condition, so they form step N1. `raw` and
+# `as_released~` do not use UrduNormalizer and are unaffected.
 _STEPS = [
-    ("N1_unicode", "NFC + zero-width removal", {}),
+    ("N1_unicode", "drop #-disfluency tags + NFC + zero-width removal", {}),
     ("N2_punct", "+ punctuation removal", {"remove_punct": True}),
     ("N3_lower", "+ lowercase Latin", {"lower_latin": True}),
     ("N4_confusables", "+ Arabic->Urdu confusables", {"map_confusables": True}),

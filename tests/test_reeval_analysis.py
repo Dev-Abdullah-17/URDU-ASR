@@ -70,3 +70,53 @@ def test_standardisation_removes_pure_length_effect():
     std = (ra.standardised(d, "corpus_wer", masks, weights, flags)
            - ra.standardised(d, "corpus_wer", masks, weights, ~flags))
     assert std == pytest.approx(0)
+
+
+# --- Holm-Bonferroni / bootstrap p-values ------------------------------------
+
+def test_holm_known_values():
+    # classic example: p = .01, .04, .03, .005 (m = 4)
+    adj = ra.holm([0.01, 0.04, 0.03, 0.005])
+    assert adj == pytest.approx([0.03, 0.06, 0.06, 0.02])
+
+
+def test_holm_monotone_and_capped():
+    p = [0.5, 0.001, 0.2, 0.9, 0.04]
+    adj = ra.holm(p)
+    order = sorted(range(len(p)), key=lambda i: p[i])
+    assert all(adj[order[k]] <= adj[order[k + 1]] for k in range(len(p) - 1))
+    assert all(a >= q for a, q in zip(adj, p)) and max(adj) <= 1.0
+
+
+def test_boot_p_two_sided():
+    assert ra.boot_p_two_sided(np.zeros(1000)) == 1.0
+    assert ra.boot_p_two_sided(np.ones(1000)) == pytest.approx(2 / 1001)
+    assert ra.boot_p_two_sided(np.r_[np.ones(900), -np.ones(100)]) == pytest.approx(2 * 101 / 1001)
+
+
+def test_add_holm_families_are_separate():
+    rows = [{"f": "a", "p_boot": 0.01, "_p": 0.01}, {"f": "a", "p_boot": 0.02, "_p": 0.02},
+            {"f": "b", "p_boot": 0.01, "_p": 0.01}, {"f": "b", "p_boot": ""}]
+    ra.add_holm(rows, ("f",))
+    assert [r["family_size"] for r in rows] == [2, 2, 1, ""]
+    assert rows[0]["p_holm"] == pytest.approx(0.02) and rows[2]["p_holm"] == pytest.approx(0.01)
+    assert rows[3]["p_holm"] == ""
+
+
+def test_add_holm_uses_unrounded_p():
+    # exact p = 10/1001 ~ 0.00999 -> Holm (m=5) 0.04995 < 0.05 (reject);
+    # rounding p to 0.0100 first would give 0.0500 (no reject)
+    p = 10 / 1001
+    rows = [{"f": "a", "p_boot": round(p, 4), "_p": p}] + \
+           [{"f": "a", "p_boot": 0.9, "_p": 0.9} for _ in range(4)]
+    ra.add_holm(rows, ("f",))
+    assert rows[0]["reject_holm_05"] is True
+    assert all("_p" not in r and "_p_exact" not in r for r in rows)
+
+
+def test_add_holm_excludes_untestable():
+    rows = [{"f": "a", "p_boot": 0.01, "_p": 0.01},
+            {"f": "a", "p_boot": float("nan"), "_p": float("nan")}]
+    ra.add_holm(rows, ("f",))
+    assert rows[0]["family_size"] == 1 and rows[1]["p_holm"] == "" and rows[1]["p_boot"] == ""
+    assert np.isnan(ra.boot_p_two_sided(np.full(10, np.nan)))
